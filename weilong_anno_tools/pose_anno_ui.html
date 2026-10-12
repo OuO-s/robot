@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>卫龙魔芋爽 · pose 手动标注</title>
+<style>
+  :root { --bg:#1b1f24; --pan:#242a31; --line:#333b44; --txt:#dfe6ee; --acc:#4da3ff; --ok:#37c871; --emp:#ff7a7a; --pend:#ffa04d; --back:#00d5d5; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--txt); font:14px/1.4 "Segoe UI",system-ui,sans-serif; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+  header { display:flex; align-items:center; gap:14px; padding:8px 14px; background:var(--pan); border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  header h1 { font-size:16px; font-weight:600; }
+  .tabs { display:flex; gap:6px; }
+  .tabs span { padding:3px 12px; border-radius:14px; background:var(--bg); border:1px solid var(--line); cursor:pointer; user-select:none; }
+  .tabs span.on { background:var(--acc); color:#fff; border-color:var(--acc); }
+  #prog { flex:1; min-width:160px; display:flex; align-items:center; gap:10px; font-size:13px; }
+  #bar { flex:1; height:8px; background:var(--bg); border-radius:5px; overflow:hidden; }
+  #bar i { display:block; height:100%; background:var(--ok); width:0; transition:width .2s; }
+  .btn { padding:6px 14px; border-radius:6px; border:1px solid var(--line); background:var(--bg); color:var(--txt); cursor:pointer; font-size:13px; }
+  .btn:hover { border-color:var(--acc); color:var(--acc); }
+  .btn.pri { background:var(--acc); border-color:var(--acc); color:#fff; }
+  .btn.emp { background:var(--emp); border-color:var(--emp); color:#fff; }
+  .btn.cls { text-align:left; }
+  .btn.cls.on0 { background:var(--ok); border-color:var(--ok); color:#fff; }
+  .btn.cls.on1 { background:var(--back); border-color:var(--back); color:#06282a; }
+  main { flex:1; display:flex; min-height:0; }
+  #stage { flex:1; display:flex; align-items:center; justify-content:center; padding:12px; min-width:0; background:#14171b; }
+  #wrap { position:relative; }
+  canvas { display:block; max-width:100%; max-height:calc(100vh - 150px); cursor:crosshair; box-shadow:0 0 18px #000a; }
+  #cur { position:absolute; top:6px; left:8px; font-size:13px; color:#fff; background:#000a; padding:2px 8px; border-radius:4px; }
+  aside { width:230px; background:var(--pan); border-left:1px solid var(--line); padding:12px; display:flex; flex-direction:column; gap:8px; }
+  aside h3 { font-size:13px; color:#9fb0c3; font-weight:600; }
+  #info { font-size:13px; line-height:1.6; }
+  #info b { color:var(--acc); }
+  .kbd { background:#111; border:1px solid var(--line); border-radius:4px; padding:0 5px; font:12px monospace; }
+  footer { height:86px; background:var(--pan); border-top:1px solid var(--line); display:flex; overflow-x:auto; padding:8px; gap:6px; }
+  .thumb { position:relative; flex:0 0 auto; cursor:pointer; border:3px solid var(--line); border-radius:4px; }
+  .thumb img { display:block; height:56px; }
+  .thumb.on { border-color:#fff; }
+  .thumb.done { border-color:var(--ok); }
+  .thumb.emp { border-color:var(--emp); }
+  .thumb i { position:absolute; right:2px; bottom:1px; font:10px/1 monospace; color:#fff; background:#000b; padding:1px 3px; border-radius:2px; font-style:normal; }
+</style>
+</head>
+<body>
+<header>
+  <h1>卫龙魔芋爽 pose 标注（正面/反面 + 4 脚点）</h1>
+  <div class="tabs" id="tabs"></div>
+  <div id="prog"><span id="ptxt">0/0</span><div id="bar"><i></i></div></div>
+  <button class="btn pri" id="export">完成并提交全部</button>
+</header>
+<main>
+  <div id="stage"><div id="wrap">
+    <canvas id="cv" width="1280" height="720"></canvas>
+    <div id="cur"></div>
+  </div></div>
+  <aside>
+    <h3>当前图片</h3>
+    <div id="info"></div>
+    <h3>类别（选中框后按键可改类别）</h3>
+    <button class="btn cls" id="bF">正面 (1) — 绿</button>
+    <button class="btn cls" id="bB">反面 (2) — 青</button>
+    <h3>操作</h3>
+    <button class="btn" id="bUndo">撤销上一点 (Z)</button>
+    <button class="btn" id="bRedo">重标脚点：删选中框 (R)</button>
+    <button class="btn" id="bDel">删除选中框 (Del)</button>
+    <button class="btn" id="bClear">清空本图全部框</button>
+    <button class="btn emp" id="bEmpty">本图无目标 · 标记为空 (X)</button>
+    <button class="btn pri" id="bNext">保存并下一张 (Enter/→)</button>
+    <button class="btn" id="bPrev">上一张 (←)</button>
+    <button class="btn" id="bJump">跳到下一张未标注 (J)</button>
+    <h3>说明</h3>
+    <div style="font-size:12px;color:#9fb0c3;line-height:1.7">
+      点 4 下 = 4 个脚点，顺序 <b style="color:#fff">左上→右上→右下→左下</b>。<br>
+      红点编号 1-4；顺序不对按 R 删掉重标。<br>
+      <span style="color:var(--ok)">绿=正面</span> <span style="color:var(--back)">青=反面</span>；
+      <span style="color:var(--pend)">橙=旧四边形预填，待确认</span>。<br>
+      拖红点微调脚点；拖框内整体移动。
+    </div>
+  </aside>
+</main>
+<footer id="strip"></footer>
+<script>
+let IMGS=[], ST={}, cur=0, img=new Image();
+let shapes=[], pend=[], sel=-1, drag=null, wasDrag=false, emptyFlag=false, activeCls=0;
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+
+function $(id){return document.getElementById(id)}
+async function boot(){
+  const r=await (await fetch('/api/bootstrap')).json();
+  IMGS=r.images; ST=r.state; buildTabs(); show(0); buildStrip();
+}
+let TAB='';
+function visList(){return IMGS.map((v,i)=>[v,i]).filter(([v])=>!TAB||v.folder===TAB).map(([,i])=>i)}
+function buildTabs(){
+  const tabs=['全部',...new Set(IMGS.map(v=>v.folder))];
+  $('tabs').innerHTML='';
+  tabs.forEach(t=>{
+    const s=document.createElement('span'); s.textContent=t;
+    if(t===TAB)s.classList.add('on');
+    s.onclick=()=>{TAB=t; buildTabs(); const l=visList(); show(l.length?l[0]:0); buildStrip();};
+    $('tabs').appendChild(s);
+  });
+}
+function entry(){ return ST[IMGS[cur].key] }
+function isDone(){ const e=entry(); return e&&(e.done||e.empty); }
+
+function show(i){
+  cur=i; const v=IMGS[i]; const e=ST[v.key]||{};
+  shapes=(e.shapes||[]).map(s=>({kpts:(s.kpts||[]).map(p=>[+p[0],+p[1]]),cls:+s.cls||0}));
+  emptyFlag=!!e.empty; pend=[]; sel=-1;
+  img.onload=()=>{draw()};
+  img.src='/img/'+v.key+'_Color.png';
+  $('info').innerHTML=`<b>${v.folder}</b><br>文件: ${v.file}<br>序号: ${i+1} / ${IMGS.length}<br>框数: <b id="nsh">${shapes.length}</b><br>状态: <b id="stt">${stTxt()}</b>`;
+  $('cur').textContent=v.folder+'/'+v.file;
+  refresh();
+}
+function stTxt(){ if(emptyFlag)return '<span style="color:var(--emp)">空（无目标）</span>'; const e=entry(); if(!e)return'未标注'; if(!e.done)return'有预标注, 待确认'; return'已标注'; }
+
+function clsColor(c){ return c===0?'#37c871':'#00d5d5'; }
+function draw(){
+  ctx.drawImage(img,0,0,1280,720);
+  const confirmed=entry()&&entry().done&&!emptyFlag;
+  for(let k=0;k<shapes.length;k++){
+    const s=shapes[k], pts=s.kpts;
+    ctx.strokeStyle=k===sel?'#fff':(confirmed?clsColor(s.cls):'#ffa04d');
+    ctx.lineWidth=3; ctx.beginPath();
+    pts.forEach((p,j)=>j?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    ctx.closePath(); ctx.stroke();
+    ctx.fillStyle='#f33';
+    pts.forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],6,0,7);ctx.fill();});
+    ctx.fillStyle='#fff'; ctx.font='bold 15px sans-serif';
+    pts.forEach((p,j)=>ctx.fillText(String(j+1),p[0]+8,p[1]-6));
+    const c=pts.reduce((a,p)=>[a[0]+p[0]/4,a[1]+p[1]/4],[0,0]);
+    ctx.fillStyle=k===sel?'#fff':(confirmed?clsColor(s.cls):'#ffa04d');
+    ctx.font='bold 18px sans-serif';
+    ctx.fillText(s.cls===0?'正':'反',c[0]-9,c[1]+7);
+  }
+  if(pend.length){
+    ctx.strokeStyle='#ff0'; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.beginPath();
+    pend.forEach((p,j)=>j?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    if(img&&pend.length>1)ctx.lineTo(mouse[0],mouse[1]);
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ff0'; pend.forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],5,0,7);ctx.fill();});
+    ctx.fillStyle='#ff0'; ctx.font='bold 15px sans-serif';
+    ctx.fillText('第'+(pend.length+1)+'/4点',mouse[0]+12,mouse[1]);
+  }
+}
+let mouse=[0,0];
+function pos(e){const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*1280/r.width,(e.clientY-r.top)*720/r.height];}
+function inPoly(p,s){let c=false;for(let i=0,j=s.length-1;i<s.length;j=i++){if(((s[i][1]>p[1])!=(s[j][1]>p[1]))&&(p[0]<(s[j][0]-s[i][0])*(p[1]-s[i][1])/(s[j][1]-s[i][1])+s[i][0]))c=!c;}return c;}
+function quadOf(s){return s.kpts}
+
+let rafPend=false;
+function schedDraw(){ if(rafPend)return; rafPend=true; requestAnimationFrame(()=>{rafPend=false;draw();}); }
+cv.addEventListener('mousemove',e=>{
+  mouse=pos(e);
+  if(drag){
+    const dx=mouse[0]-drag.m[0],dy=mouse[1]-drag.m[1];
+    if(drag.pt!==undefined){shapes[drag.sh].kpts[drag.pt]=[mouse[0],mouse[1]];}
+    else drag.pts.forEach((o,j)=>{shapes[drag.sh].kpts[j]=[o[0]+dx,o[1]+dy];});
+    schedDraw(); return;
+  }
+  const onShape = shapes.some(s=>inPoly(mouse,quadOf(s)));
+  cv.style.cursor = (nearPt(mouse)||onShape) ? 'move' : 'crosshair';
+});
+cv.addEventListener('mousedown',e=>{
+  const p=pos(e);
+  const n=nearPt(p);
+  if(n){drag={sh:n[0],pt:n[1],m:p};sel=n[0];syncClsUI();draw();return;}
+  for(let k=shapes.length-1;k>=0;k--) if(inPoly(p,quadOf(shapes[k]))){sel=k;activeCls=shapes[k].cls;syncClsUI();drag={sh:k,pts:shapes[k].kpts.map(q=>[...q]),m:p};draw();return;}
+  sel=-1; syncClsUI();
+});
+cv.addEventListener('mouseup',()=>{wasDrag=!!drag;drag=null;syncCount();});
+cv.addEventListener('click',e=>{
+  if(drag||wasDrag){wasDrag=false;return;}
+  const p=pos(e);
+  pend.push([Math.round(p[0]),Math.round(p[1])]);
+  if(pend.length>=4)closeShape();
+  draw();
+});
+function nearPt(p){for(let k=0;k<shapes.length;k++)for(let j=0;j<shapes[k].kpts.length;j++)if(Math.hypot(p[0]-shapes[k].kpts[j][0],p[1]-shapes[k].kpts[j][1])<9)return [k,j];return null;}
+function closeShape(){ shapes.push({kpts:pend,cls:activeCls}); sel=shapes.length-1; pend=[];draw();syncCount(); }
+function syncCount(){ const n=$('nsh'); if(n)n.textContent=shapes.length; }
+function setCls(c){
+  activeCls=c;
+  if(sel>=0&&shapes[sel]){shapes[sel].cls=c;}
+  syncClsUI(); draw();
+}
+function syncClsUI(){
+  const eff=(sel>=0&&shapes[sel])?shapes[sel].cls:activeCls;
+  $('bF').classList.toggle('on0',eff===0);
+  $('bF').classList.toggle('on1',false);
+  $('bB').classList.toggle('on1',eff===1);
+  $('bB').classList.toggle('on0',false);
+}
+function redoKpts(){  // R: 删选中框, 其类别设为当前类别便于重画
+  if(sel<0||!shapes[sel]){alert('先点击选中一个框再按 R');return;}
+  activeCls=shapes[sel].cls;
+  shapes.splice(sel,1); sel=-1; pend=[]; syncClsUI(); draw(); syncCount();
+}
+
+async function save(advance,asEmpty){
+  const v=IMGS[cur];
+  emptyFlag=!!asEmpty;
+  if(asEmpty)shapes=[];
+  ST[v.key]={shapes:shapes.map(s=>({kpts:s.kpts.map(p=>[Math.round(p[0]),Math.round(p[1])]),cls:s.cls})),empty:emptyFlag,done:true};
+  await fetch('/api/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:v.key,shapes:ST[v.key].shapes,empty:emptyFlag,done:true})});
+  refresh();
+  if(advance)next(1,true);
+}
+function next(d,fromSave){
+  const l=visList(); let i=l.indexOf(cur);
+  i=Math.min(Math.max(i+d,0),l.length-1);
+  if(i!==cur||!fromSave)show(l[i]);
+}
+function jump(){
+  const l=visList();
+  for(const i of [...l.slice(l.indexOf(cur)+1),...l.slice(0,l.indexOf(cur)+1)])
+    if(!isDone()){show(i);return;}
+  alert('全部图片都已标注完成！可点击右上角「完成并提交全部」');
+}
+function refresh(){
+  const total=IMGS.length, done=IMGS.filter(v=>{const e=ST[v.key];return e&&e.done}).length;
+  const emp=IMGS.filter(v=>ST[v.key]&&ST[v.key].empty).length;
+  $('ptxt').textContent=`${done}/${total}（空 ${emp}）`;
+  $('bar').firstElementChild.style.width=(100*done/total)+'%';
+  const stt=$('stt'); if(stt)stt.innerHTML=stTxt();
+  const n=$('nsh'); if(n)n.textContent=shapes.length;
+  updateStrip();
+}
+let thumbEls={};
+function buildStrip(){
+  const st=$('strip'); st.innerHTML=''; thumbEls={};
+  const frag=document.createDocumentFragment();
+  visList().forEach(i=>{
+    const v=IMGS[i];
+    const d=document.createElement('div'); d.className='thumb';
+    const im=document.createElement('img');
+    im.src='/thumb/'+v.key+'_Color.png';
+    im.loading='lazy'; im.decoding='async'; im.width=100; im.height=56;
+    const lbl=document.createElement('i'); lbl.textContent=v.file.replace('_Color.png','');
+    d.append(im,lbl);
+    d.onclick=()=>{show(i)};
+    thumbEls[i]=d; frag.appendChild(d);
+  });
+  st.appendChild(frag);
+  updateStrip();
+}
+function updateStrip(){
+  for(const i in thumbEls){
+    const e=ST[IMGS[i].key];
+    thumbEls[i].classList.toggle('on', +i===cur);
+    thumbEls[i].classList.toggle('emp', !!(e&&e.empty));
+    thumbEls[i].classList.toggle('done', !!(e&&e.done&&!e.empty));
+  }
+  const el=thumbEls[cur];
+  if(el)el.scrollIntoView({inline:'center',block:'nearest'});
+}
+$('bF').onclick=()=>setCls(0);
+$('bB').onclick=()=>setCls(1);
+$('bNext').onclick=()=>save(true);
+$('bPrev').onclick=()=>next(-1);
+$('bEmpty').onclick=()=>save(true,true);
+$('bUndo').onclick=()=>{pend.pop();draw()};
+$('bRedo').onclick=redoKpts;
+$('bDel').onclick=()=>{if(sel>=0){shapes.splice(sel,1);sel=-1;draw();syncCount();}};
+$('bClear').onclick=()=>{shapes=[];pend=[];sel=-1;draw();syncCount();};
+$('bJump').onclick=jump;
+$('export').onclick=async()=>{
+  const left=IMGS.filter(v=>!(ST[v.key]&&ST[v.key].done)).length;
+  if(left && !confirm(`还有 ${left} 张未标注，确定现在提交？未标注的图片将不生成标注文件。`))return;
+  if(!left && !confirm('确定提交全部标注？将写入 *_Color.pose.json / .pose.txt（不影响旧 seg 标注）并生成可视化。'))return;
+  const r=await (await fetch('/api/export',{method:'POST'})).json();
+  const s=r.summary;
+  alert(`提交完成！\n有目标标注: ${s.annotated} 张（正面 ${s.front} / 反面 ${s.back}）\n标记为空: ${s.empty} 张\n未处理: ${s.skipped} 张\n\n标注文件已写入 dataset_seg 各文件夹 (*.pose.*)，\n可视化检查页: dataset_seg_pose_vis/index.html`);
+};
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  const k=e.key.toLowerCase();
+  if(k==='1'){setCls(0)}
+  else if(k==='2'){setCls(1)}
+  else if(k==='enter'){e.preventDefault();save(true);}
+  else if(k==='arrowright'){next(1)} else if(k==='arrowleft'){next(-1)}
+  else if(k==='x'){save(true,true)} else if(k==='j'){jump()}
+  else if(k==='z'){pend.pop();draw()}
+  else if(k==='r'){redoKpts()}
+  else if(k==='delete'||k==='backspace'){if(sel>=0){shapes.splice(sel,1);sel=-1;draw();syncCount();}}
+  else if(k==='escape'){pend=[];draw()}
+});
+syncClsUI();
+boot();
+</script>
+</body>
+</html>

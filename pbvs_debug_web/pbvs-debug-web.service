@@ -1,0 +1,14 @@
+[Unit]
+Description=PBVS debug web console (port 7010, proxy 7004/7005/8000)
+After=network.target
+
+[Service]
+Type=simple
+User=user
+WorkingDirectory=/home/tianlian/PBVS代码包/debug_web
+ExecStart=/usr/bin/python3 server.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

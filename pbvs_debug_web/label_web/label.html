@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>YOLO-pose 标注 — 卫龙采集集</title>
+<style>
+  :root {
+    --bg: #101418; --surface: #1a2027; --border: #2a323c; --ink: #e8edf2;
+    --muted: #8a97a3; --good: #37c871; --warn: #ff9f2e; --bad: #ff5252; --accent: #4da3ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 14px/1.5 system-ui, "Microsoft YaHei", sans-serif; }
+  header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+           padding: 10px 14px; background: var(--surface);
+           border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 16px; margin: 0 8px 0 0; }
+  button { background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+           border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #08131f; font-weight: 600; }
+  button.danger { border-color: var(--bad); color: var(--bad); }
+  button:disabled { opacity: .4; cursor: default; }
+  .progress { font-weight: 600; }
+  .progress .bar { display: inline-block; width: 120px; height: 8px; background: var(--border);
+                   border-radius: 4px; overflow: hidden; vertical-align: middle; margin: 0 6px; }
+  .progress .bar i { display: block; height: 100%; background: var(--good); width: 0; }
+  main { display: flex; gap: 14px; padding: 14px; align-items: flex-start; flex-wrap: wrap; }
+  .stage { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+           padding: 10px; }
+  canvas { display: block; cursor: crosshair; border-radius: 6px; }
+  aside { width: 320px; display: flex; flex-direction: column; gap: 10px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+           padding: 10px 12px; }
+  .panel h3 { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+  .clsrow { display: flex; gap: 8px; }
+  .clsrow button { flex: 1; }
+  .clsrow button.on[data-cls="0"] { background: var(--good); border-color: var(--good); color: #06220f; }
+  .clsrow button.on[data-cls="1"] { background: var(--warn); border-color: var(--warn); color: #2b1600; }
+  .meta { color: var(--muted); font-size: 12px; word-break: break-all; }
+  .hint { color: var(--muted); font-size: 12px; }
+  .hint b { color: var(--ink); }
+  .kbd { background: var(--border); border-radius: 4px; padding: 0 5px; font-size: 11px; }
+  #warn { color: var(--bad); font-weight: 600; min-height: 20px; }
+  #toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+           background: var(--good); color: #06220f; padding: 8px 16px; border-radius: 8px;
+           font-weight: 600; opacity: 0; transition: opacity .25s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+  ul.list { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow-y: auto; }
+  ul.list li { display: flex; gap: 6px; align-items: center; padding: 3px 6px; border-radius: 5px;
+               cursor: pointer; font-size: 12px; color: var(--muted); }
+  ul.list li:hover { background: var(--border); }
+  ul.list li.cur { background: var(--border); color: var(--ink); }
+  ul.list li .st { width: 16px; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏷 YOLO-pose 标注 — 卫龙采集集</h1>
+  <span class="progress"><span id="pTxt">加载中…</span><span class="bar"><i id="pBar"></i></span></span>
+  <button id="btnFirstUnlabeled">⏭ 首张未标</button>
+  <button id="btnPrev">◀ 上一张</button>
+  <button id="btnNext">下一张 ▶</button>
+  <button id="btnUndo">↩ 撤销点 <span class="kbd">Z</span></button>
+  <button id="btnClear">✕ 清空本图</button>
+  <button id="btnEmpty" class="danger">🚫 无袋·负样本 <span class="kbd">E</span></button>
+  <button id="btnSave" class="primary">💾 保存并下一张 <span class="kbd">S</span></button>
+</header>
+<main>
+  <div class="stage">
+    <canvas id="cv" width="640" height="480"></canvas>
+    <div id="warn"></div>
+  </div>
+  <aside>
+    <div class="panel">
+      <h3>类别（默认取自采集目录，可改）</h3>
+      <div class="clsrow">
+        <button data-cls="0" id="clsFront">正面 front (0)</button>
+        <button data-cls="1" id="clsBack">反面 back (1)</button>
+      </div>
+      <div class="meta" id="curFile" style="margin-top:8px">—</div>
+    </div>
+    <div class="panel">
+      <h3>怎么点（和旧数据集约定完全一致）</h3>
+      <div class="hint">
+        心里把袋子转成<b>头朝上</b>，按 <b>1→2→3→4</b> 顺时针点四个角：<br>
+        <b>1</b>=头端左上 · <b>2</b>=头端右上 · <b>3</b>=尾端右下 · <b>4</b>=尾端左下<br>
+        <b>头端</b>=卫龙 logo 那端（正反两面同一物理端）。<br>
+        点满 4 点自动画四边形+白色箭头(尾→头)，箭头应指向袋头。<br>
+        画面里没有袋子 → <b>🚫 无袋</b>（写成空标签，训练时当负样本）。<br>
+        快捷键：<span class="kbd">←/→</span> 翻页 · <span class="kbd">Z</span> 撤销 ·
+        <span class="kbd">E</span> 负样本 · <span class="kbd">S/回车</span> 保存。
+      </div>
+    </div>
+    <div class="panel">
+      <h3>图片清单（✓已标 · 🚫负样本 · ○未标）</h3>
+      <ul class="list" id="list"></ul>
+    </div>
+  </aside>
+</main>
+<div id="toast"></div>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const cv = $("cv"), ctx = cv.getContext("2d");
+let items = [], idx = -1;          // items: {label, file, done, empty}
+let img = null, scale = 1.25;      // 显示放大倍数
+let kpts = [], cls = 0;            // 像素坐标脚点 + 类别
+let isEmptyMark = false;
+
+function toast(msg, bad) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.style.background = bad ? "var(--bad)" : "var(--good)";
+  t.style.color = bad ? "#fff" : "#06220f";
+  t.classList.add("show");
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+async function getJSON(url) {
+  const r = await fetch(url, { cache: "no-store" });
+  return r.json().catch(() => ({}));
+}
+async function postJSON(url, body) {
+  const r = await fetch(url, { method: "POST",
+    headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  return r.json().catch(() => ({}));
+}
+
+function renderProgress() {
+  const done = items.filter(i => i.done).length;
+  $("pTxt").textContent = `已标 ${done} / ${items.length}`;
+  $("pBar").style.width = (items.length ? (100 * done / items.length) : 0) + "%";
+}
+
+function renderList() {
+  const ul = $("list");
+  ul.innerHTML = "";
+  items.forEach((it, i) => {
+    const li = document.createElement("li");
+    if (i === idx) li.className = "cur";
+    li.innerHTML = `<span class="st">${it.done ? (it.empty ? "🚫" : "✓") : "○"}</span>` +
+      `<span>${it.label === "front" ? "正" : "反"}/${it.file.slice(-10)}</span>`;
+    li.onclick = () => load(i);
+    ul.appendChild(li);
+  });
+  const cur = ul.querySelector("li.cur");
+  if (cur) cur.scrollIntoView({ block: "nearest" });
+}
+
+function setCls(c) {
+  cls = c;
+  $("clsFront").classList.toggle("on", c === 0);
+  $("clsBack").classList.toggle("on", c === 1);
+}
+
+function shoelace(k) {          // 与旧数据集同号(全部>0)为正确绕序
+  let s = 0;
+  for (let i = 0; i < 4; i++) {
+    const [x1, y1] = k[i], [x2, y2] = k[(i + 1) % 4];
+    s += x1 * y2 - x2 * y1;
+  }
+  return s;
+}
+
+function draw() {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  if (img) ctx.drawImage(img, 0, 0, cv.width, cv.height);
+  if (isEmptyMark && kpts.length === 0) {
+    ctx.fillStyle = "rgba(255,82,82,.85)"; ctx.font = "bold 22px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🚫 已标为负样本(无袋)", cv.width / 2, cv.height / 2);
+    ctx.textAlign = "left";
+  }
+  if (!kpts.length) return;
+  const P = kpts.map(([x, y]) => [x * scale, y * scale]);
+  if (P.length === 4) {
+    ctx.beginPath();
+    P.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+    ctx.closePath();
+    ctx.fillStyle = "rgba(77,163,255,.14)"; ctx.fill();
+    ctx.strokeStyle = "#4da3ff"; ctx.lineWidth = 2; ctx.stroke();
+    const hx = (P[0][0] + P[1][0]) / 2, hy = (P[0][1] + P[1][1]) / 2;
+    const tx = (P[2][0] + P[3][0]) / 2, ty = (P[2][1] + P[3][1]) / 2;
+    const a = Math.atan2(hy - ty, hx - tx);
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(hx, hy); ctx.stroke();
+    ctx.beginPath();
+    for (const s of [-1, 1]) {
+      const a2 = a + s * 2.618;
+      ctx.moveTo(hx, hy); ctx.lineTo(hx + 13 * Math.cos(a2), hy + 13 * Math.sin(a2));
+    }
+    ctx.stroke();
+  }
+  P.forEach((p, i) => {
+    ctx.fillStyle = i < 2 ? "#37c871" : "#ff9f2e";       // 头绿 尾橙
+    ctx.beginPath(); ctx.arc(p[0], p[1], i < 2 ? 7 : 6, 0, 7); ctx.fill();
+    ctx.fillStyle = "#06220f"; ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(String(i + 1), p[0], p[1] + 3.5);
+    ctx.textAlign = "left";
+  });
+  const warn = $("warn");
+  if (kpts.length === 4) {
+    const s = shoelace(kpts);
+    warn.textContent = s > 0 ? "" : "⚠ 绕序反了！应为 头左上→头右上→尾右下→尾左下(与旧数据集一致)，请 Z 撤销重点";
+  } else {
+    warn.textContent = `已点 ${kpts.length}/4 — 下一角: ${["头端左上(1)", "头端右上(2)", "尾端右下(3)", "尾端左下(4)"][kpts.length]}`;
+  }
+}
+
+async function load(i) {
+  if (i < 0 || i >= items.length) return;
+  idx = i;
+  const it = items[i];
+  kpts = []; isEmptyMark = false;
+  setCls(it.label === "front" ? 0 : 1);
+  $("curFile").textContent = `${it.label}/${it.file}`;
+  img = new Image();
+  img.onload = () => {
+    cv.width = Math.round(img.naturalWidth * scale);
+    cv.height = Math.round(img.naturalHeight * scale);
+    if (it.done) loadLabel(it);
+    else draw();
+    renderList();
+  };
+  img.src = `/collect/img/${it.label}/${it.file}`;
+}
+
+async function loadLabel(it) {
+  const r = await getJSON(`/collect/label/${it.label}/${it.file}`);
+  if (r.empty) { isEmptyMark = true; draw(); return; }
+  if (!r.ok || !r.line) { draw(); return; }
+  const v = r.line.trim().split(/\s+/).map(Number);
+  setCls(v[0]);
+  kpts = [];
+  for (let i = 0; i < 4; i++)
+    kpts.push([v[5 + 2 * i] * img.naturalWidth, v[6 + 2 * i] * img.naturalHeight]);
+  draw();
+}
+
+cv.addEventListener("click", e => {
+  if (!img) return;
+  if (isEmptyMark) { isEmptyMark = false; toast("已取消负样本标记，重新标注后保存"); }
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) / scale, y = (e.clientY - r.top) / scale;
+  if (kpts.length >= 4) { toast("已满 4 点 — Z 撤销或 S 保存", true); return; }
+  kpts.push([x, y]);
+  draw();
+});
+cv.addEventListener("contextmenu", e => { e.preventDefault(); undo(); });
+
+function undo() { if (kpts.length) { kpts.pop(); draw(); } }
+
+async function save(empty) {
+  const it = items[idx];
+  if (!it) return;
+  if (!empty && kpts.length !== 4) { toast("点满 4 个脚点才能保存", true); return; }
+  const body = empty ? { label: it.label, file: it.file, empty: true }
+    : { label: it.label, file: it.file, cls,
+        kpts: kpts.map(p => [Math.round(p[0] * 10) / 10, Math.round(p[1] * 10) / 10]),
+        w: img.naturalWidth, h: img.naturalHeight };
+  const r = await postJSON("/collect/save", body);
+  if (!r.ok) { toast("保存失败: " + (r.error || ""), true); return; }
+  it.done = true; it.empty = !!empty;
+  renderProgress();
+  toast(empty ? "已记负样本" : "已保存 ✓");
+  next();
+}
+
+function next() { if (idx < items.length - 1) load(idx + 1); else renderList(); }
+function prev() { if (idx > 0) load(idx - 1); }
+function firstUnlabeled() {
+  const i = items.findIndex(it => !it.done);
+  load(i >= 0 ? i : 0);
+}
+
+$("btnPrev").onclick = prev;
+$("btnNext").onclick = next;
+$("btnFirstUnlabeled").onclick = firstUnlabeled;
+$("btnUndo").onclick = undo;
+$("btnClear").onclick = () => { kpts = []; isEmptyMark = false; draw(); };
+$("btnEmpty").onclick = () => { if (confirm("标记当前图为无袋负样本？")) save(true); };
+$("btnSave").onclick = () => save(false);
+$("clsFront").onclick = () => setCls(0);
+$("clsBack").onclick = () => setCls(1);
+
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowLeft") prev();
+  else if (e.key === "ArrowRight") next();
+  else if (e.key === "z" || e.key === "Z") undo();
+  else if (e.key === "e" || e.key === "E") save(true);
+  else if (e.key === "s" || e.key === "S" || e.key === "Enter") save(false);
+});
+
+(async function init() {
+  const r = await getJSON("/collect/list");
+  if (!r.ok) { $("pTxt").textContent = "清单加载失败"; return; }
+  items = r.items;
+  renderProgress();
+  firstUnlabeled();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1111 @@
+{
+ "完整new": [
+  {
+   "side": "left",
+   "kind": "suction",
+   "label": "⑭直线吸取: 第2袋 压3mm 停2s",
+   "params": {
+    "run": "direct",
+    "index": 2,
+    "press_mm": 3,
+    "hold_s": 2
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z-14 → 等1s",
+   "params": {
+    "moves": [
+     {
+      "x": 0,
+      "y": 0,
+      "z": -0.014,
+      "frame": "tool"
+     },
+     {
+      "dwell": 1
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z80",
+   "params": {
+    "moves": [
+     {
+      "x": 0,
+      "y": 0,
+      "z": 0.08,
+      "frame": "tool"
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·左臂放new",
+   "params": {
+    "name": "左臂放new"
+   }
+  },
+  {
+   "side": "left",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] X6 Y75 Z-50 → [工具] Z-140",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0.006,
+      "y": 0.075,
+      "z": -0.05
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.14
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·姿态检测 单袋 正/反 + 4脚点的初始位姿",
+   "params": {
+    "name": "姿态检测 单袋 正/反 + 4脚点的初始位姿"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·取new",
+   "params": {
+    "name": "取new"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z-100 → [工具] X62 → [工具] Y181 → [工具]",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.1
+     },
+     {
+      "frame": "tool",
+      "x": 0.062,
+      "y": 0,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.181,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.118
+     },
+     {
+      "gripper": 0
+     },
+     {
+      "dwell": 1.5
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.06
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·放new",
+   "params": {
+    "name": "放new"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z10 → [工具] X65 → [工具] Y185 → [工具] Z",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.01
+     },
+     {
+      "frame": "tool",
+      "x": 0.065,
+      "y": 0,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.185,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.055
+     },
+     {
+      "gripper": 1000
+     },
+     {
+      "dwell": 1
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.06
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  }
+ ],
+ "完整左臂": [
+  {
+   "side": "left",
+   "kind": "suction",
+   "label": "⑭直线吸取: 第2袋",
+   "params": {
+    "run": "direct",
+    "index": 2
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z-14 → 等1s → [工具] Z80",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.014
+     },
+     {
+      "dwell": 1
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.08
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·左臂放new",
+   "params": {
+    "name": "左臂放new"
+   }
+  },
+  {
+   "side": "left",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] X-10 Y80 → [工具] Z-200 → 等1s",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": -0.01,
+      "y": 0.08,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.2
+     },
+     {
+      "dwell": 1
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·姿态检测 单袋 正/反 + 4脚点的初始位姿",
+   "params": {
+    "name": "姿态检测 单袋 正/反 + 4脚点的初始位姿"
+   }
+  }
+ ],
+ "完整右臂": [
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·取new",
+   "params": {
+    "name": "取new"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z-100 → [工具] X-114 → [工具] Y50 → [工具",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.1
+     },
+     {
+      "frame": "tool",
+      "x": -0.114,
+      "y": 0,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.05,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.105
+     },
+     {
+      "gripper": 0
+     },
+     {
+      "dwell": 1
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.08
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·放new",
+   "params": {
+    "name": "放new"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z10 → [工具] X65 → [工具] Y185 → [工具] Z",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.01
+     },
+     {
+      "frame": "tool",
+      "x": 0.065,
+      "y": 0,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.185,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.055
+     },
+     {
+      "gripper": 1000
+     },
+     {
+      "dwell": 1
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.06
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·放new",
+   "params": {
+    "name": "放new"
+   }
+  }
+ ],
+ "完整左臂（旋）": [
+  {
+   "side": "left",
+   "kind": "suction",
+   "label": "⑭直线吸取: 第1袋",
+   "params": {
+    "run": "direct",
+    "index": 1
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z-14 → 等1s → [工具] Z80",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.014
+     },
+     {
+      "dwell": 1
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.08
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·放new",
+   "params": {
+    "name": "放new"
+   }
+  },
+  {
+   "side": "left",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] X-10 Y80 → [工具] Z-200 → 等1s",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": -0.01,
+      "y": 0.08,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.2
+     },
+     {
+      "dwell": 1
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): 🧭⑩转正#1按检测 → 等0.1s",
+   "params": {
+    "moves": [
+     {
+      "pose_align": {
+       "index": 1
+      }
+     },
+     {
+      "dwell": 0.1
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·姿态检测 单袋 正/反 + 4脚点的初始位姿",
+   "params": {
+    "name": "姿态检测 单袋 正/反 + 4脚点的初始位姿"
+   }
+  }
+ ],
+ "（现）左臂队列": [
+  {
+   "side": "left",
+   "kind": "suction",
+   "label": "⑭直线吸取: 第1袋",
+   "params": {
+    "run": "direct",
+    "index": 1
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z10 → [工具] RZ5° → [工具] Z-14 → 等1s →",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.01
+     },
+     {
+      "frame": "tool",
+      "rx": 0,
+      "ry": 0,
+      "rz": 5
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.014
+     },
+     {
+      "dwell": 1
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.08
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）中放",
+   "params": {
+    "name": "（现）中放"
+   }
+  },
+  {
+   "side": "left",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z-190 → [工具] RZ3° → [工具] X-10 Y80",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.19
+     },
+     {
+      "frame": "tool",
+      "rx": 0,
+      "ry": 0,
+      "rz": 3
+     },
+     {
+      "frame": "tool",
+      "x": -0.01,
+      "y": 0.08,
+      "z": 0
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）左初始姿态",
+   "params": {
+    "name": "（现）左初始姿态"
+   }
+  }
+ ],
+ "（现）右臂队列": [
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·test",
+   "params": {
+    "name": "test"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Y60 → [工具] Z-100 → [工具] X-186 → [工具",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.06,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.1
+     },
+     {
+      "frame": "tool",
+      "x": -0.186,
+      "y": 0,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "rx": 0,
+      "ry": 2,
+      "rz": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.078
+     },
+     {
+      "gripper": 0
+     },
+     {
+      "dwell": 0.8
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.09
+     },
+     {
+      "frame": "tool",
+      "x": 0.1,
+      "y": -0.06,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0.18,
+      "y": 0,
+      "z": 0
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）右放",
+   "params": {
+    "name": "（现）右放"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] X-36 → [工具] Z140 → [工具] Y260 → [工具]",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": -0.036,
+      "y": 0,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.14
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.26,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.025
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.015,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.04
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.012,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.05
+     },
+     {
+      "gripper": 1000
+     },
+     {
+      "dwell": 0.8
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.04
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": -0.15,
+      "z": 0
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  }
+ ],
+ "（现）右放": [
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）中取",
+   "params": {
+    "name": "（现）中取"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取·（现）中取",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.06,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.1
+     },
+     {
+      "frame": "tool",
+      "x": -0.186,
+      "y": 0,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "rx": 0,
+      "ry": 2,
+      "rz": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.083
+     },
+     {
+      "gripper": 0
+     },
+     {
+      "dwell": 0.8
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.09
+     },
+     {
+      "frame": "tool",
+      "x": 0.1,
+      "y": -0.06,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0.18,
+      "y": 0,
+      "z": 0
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）右放",
+   "params": {
+    "name": "（现）右放"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取·（现）右放入",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": -0.035,
+      "y": 0,
+      "z": 0.14
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.264,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.014,
+      "z": -0.025
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.014,
+      "z": -0.04
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.05
+     },
+     {
+      "gripper": 1000
+     },
+     {
+      "dwell": 0.8
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.04
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": -0.15,
+      "z": 0
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）右放",
+   "params": {
+    "name": "（现）右放"
+   }
+  }
+ ],
+ "（现）双臂归位": [
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）左初始姿态",
+   "params": {
+    "name": "（现）左初始姿态"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）右放",
+   "params": {
+    "name": "（现）右放"
+   }
+  }
+ ],
+ "1": [
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）中取",
+   "params": {
+    "name": "（现）中取"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）右放",
+   "params": {
+    "name": "（现）右放"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取·（现）右放入",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": -0.036,
+      "y": 0,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.14
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.26,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.025
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.015,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.04
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.012,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.05
+     },
+     {
+      "gripper": 1000
+     },
+     {
+      "dwell": 0.8
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.04
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": -0.15,
+      "z": 0
+     }
+    ],
+    "require_aligned": true,
+    "smooth": true
+   }
+  }
+ ]
+}

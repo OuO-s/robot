@@ -1,0 +1,13 @@
+[Unit]
+Description=Weilong vision detect service: box bundles + single-bag pose (port 7020, GPU yolo11_env)
+After=network.target
+
+[Service]
+ExecStart=/home/tianlian/yolo11_env/bin/python /home/tianlian/weilong/box_detect_service.py
+Restart=always
+RestartSec=3
+StandardOutput=append:/home/tianlian/weilong/logs/box_detect.log
+StandardError=append:/home/tianlian/weilong/logs/box_detect.log
+
+[Install]
+WantedBy=multi-user.target

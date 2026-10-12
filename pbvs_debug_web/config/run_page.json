@@ -1,0 +1,273 @@
+{
+ "saved_at": 1791779299.9082248,
+ "loops": 10,
+ "steps": [
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）左初始姿态",
+   "params": {
+    "name": "（现）左初始姿态"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）右放",
+   "params": {
+    "name": "（现）右放"
+   }
+  },
+  {
+   "side": "left",
+   "kind": "suction",
+   "label": "⑭直线吸取: 第1袋",
+   "params": {
+    "index": 1,
+    "run": "direct"
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取·吸取",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.01
+     },
+     {
+      "frame": "tool",
+      "rx": 0,
+      "ry": 0,
+      "rz": 5
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.014
+     },
+     {
+      "dwell": 1
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.08
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）中放",
+   "params": {
+    "name": "（现）中放"
+   }
+  },
+  {
+   "side": "left",
+   "kind": "align_wait",
+   "label": "④对准·到收敛",
+   "params": {
+    "timeout_s": 120
+   }
+  },
+  {
+   "side": "left",
+   "kind": "grasp_seq",
+   "label": "⑧抓取(一次到位): [工具] Z-190 → [工具] RZ3° → [工具] X-10 Y80",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.19
+     },
+     {
+      "frame": "tool",
+      "rx": 0,
+      "ry": 0,
+      "rz": 3
+     },
+     {
+      "frame": "tool",
+      "x": -0.01,
+      "y": 0.08,
+      "z": 0
+     },
+     {
+      "dwell": 1.5
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "left",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）左初始姿态",
+   "params": {
+    "name": "（现）左初始姿态"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）中取",
+   "params": {
+    "name": "（现）中取"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取·（现）中取",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.06,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.1
+     },
+     {
+      "frame": "tool",
+      "x": -0.186,
+      "y": 0,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "rx": 0,
+      "ry": 2,
+      "rz": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.083
+     },
+     {
+      "gripper": 0
+     },
+     {
+      "dwell": 0.8
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.09
+     },
+     {
+      "frame": "tool",
+      "x": 0.1,
+      "y": -0.06,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0.18,
+      "y": 0,
+      "z": 0
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）右放",
+   "params": {
+    "name": "（现）右放"
+   }
+  },
+  {
+   "side": "right",
+   "kind": "grasp_seq",
+   "label": "⑧抓取·（现）右放入",
+   "params": {
+    "moves": [
+     {
+      "frame": "tool",
+      "x": -0.035,
+      "y": 0,
+      "z": 0.14
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.264,
+      "z": 0
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.014,
+      "z": -0.025
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0.014,
+      "z": -0.04
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": -0.05
+     },
+     {
+      "gripper": 1000
+     },
+     {
+      "dwell": 0.8
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": 0,
+      "z": 0.04
+     },
+     {
+      "frame": "tool",
+      "x": 0,
+      "y": -0.15,
+      "z": 0
+     }
+    ],
+    "require_aligned": false,
+    "smooth": true
+   }
+  },
+  {
+   "side": "right",
+   "kind": "teach_goto",
+   "label": "⑦前往·（现）右放",
+   "params": {
+    "name": "（现）右放"
+   }
+  }
+ ]
+}

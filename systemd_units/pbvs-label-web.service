@@ -1,0 +1,14 @@
+[Unit]
+Description=Weilong label web (collect_wrist YOLO-pose annotation, port 7030)
+After=network.target
+
+[Service]
+Type=simple
+User=user
+WorkingDirectory=/home/tianlian/PBVS代码包/debug_web/label_web
+ExecStart=/usr/bin/python3 label_server.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

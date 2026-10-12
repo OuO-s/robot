@@ -1,0 +1,1133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-1-g15f4949  Build Version: 1.6.7594.29634
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="y4_ft_705vh_description">
+ <mujoco>
+    <compiler meshdir="../meshes/y4_ft_705vh_description" discardvisual="false"/>
+ </mujoco>
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.00653633951049399 9.8534607032583E-07 0.326770021204081"
+        rpy="0 0 0" />
+      <mass
+        value="34.8255937704491" />
+      <inertia
+        ixx="1.69354615231862"
+        ixy="-2.99514278652716E-06"
+        ixz="-3.62412062073431E-06"
+        iyy="1.7958587150476"
+        iyz="9.67508381655131E-06"
+        izz="0.933889174634538" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.529411764705882 0.549019607843137 0.549019607843137 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="head_camera_link">
+    <inertial>
+      <origin
+        xyz="0.0119927541116291 0.000164440298080276 -1.52403793455269E-05"
+        rpy="0 0 0" />
+      <mass
+        value="0.0484801132187695" />
+      <inertia
+        ixx="3.07008082911729E-05"
+        ixy="4.64094706649183E-08"
+        ixz="-4.16676211944106E-09"
+        iyy="4.54546002980741E-06"
+        iyz="3.52164800538517E-11"
+        izz="3.09940756184614E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/head_camera_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/head_camera_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="head_camera_joint"
+    type="fixed">
+    <origin
+      xyz="0.0624882618407082 -1.28215867182518E-05 1.41086846288667"
+      rpy="0 0.872664625997163 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="head_camera_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="left_tl_robot_link0">
+    <inertial>
+      <origin
+        xyz="-0.000898598060838085 -9.74557167435774E-05 0.0437281074165808"
+        rpy="0 0 0" />
+      <mass
+        value="0.185024093811126" />
+      <inertia
+        ixx="0.000344004738276042"
+        ixy="2.60120865376848E-09"
+        ixz="1.42882673050797E-05"
+        iyy="0.000297974572758625"
+        iyz="4.16240879107025E-08"
+        izz="0.000352632700491328" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link0.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link0.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_tl_robot_joint0"
+    type="fixed">
+    <origin
+      xyz="-0.00160556062482629 0.015 1.135"
+      rpy="1.5707963267949 0 -3.14159265358979" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_tl_robot_link0" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="left_tl_robot_link1">
+    <inertial>
+      <origin
+        xyz="3.31889406247204E-06 -0.0147070525756392 0.066333556188382"
+        rpy="0 0 0" />
+      <mass
+        value="0.140770861999532" />
+      <inertia
+        ixx="0.000372248503128031"
+        ixy="1.42143096353475E-08"
+        ixz="-4.1889101959196E-08"
+        iyy="0.000389981739862691"
+        iyz="5.96611747887816E-05"
+        izz="0.000156503015943541" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_tl_robot_joint1"
+    type="revolute">
+    <origin
+      xyz="-0.0016055606248247 0 0.122399999999838"
+      rpy="0 0 0" />
+    <parent
+      link="left_tl_robot_link0" />
+    <child
+      link="left_tl_robot_link1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.124139"
+      upper="3.124139"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="left_tl_robot_link2">
+    <inertial>
+      <origin
+        xyz="1.02416010986095E-05 -0.0560916041002442 0.00336651728224191"
+        rpy="0 0 0" />
+      <mass
+        value="0.124322202925428" />
+      <inertia
+        ixx="0.000338229178946747"
+        ixy="-2.7771029626543E-08"
+        ixz="-1.15482092972932E-08"
+        iyy="0.000119669282341497"
+        iyz="-6.43974202368208E-05"
+        izz="0.000349387151570821" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_tl_robot_joint2"
+    type="revolute">
+    <origin
+      xyz="0 0.0154999999982536 0.119600000000028"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="left_tl_robot_link1" />
+    <child
+      link="left_tl_robot_link2" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.408554"
+      upper="2.408554"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="left_tl_robot_link3">
+    <inertial>
+      <origin
+        xyz="-0.000130047803540978 0.0129870370659889 0.0647089305325438"
+        rpy="0 0 0" />
+      <mass
+        value="0.114512482957116" />
+      <inertia
+        ixx="0.000262269382188431"
+        ixy="-1.88208141571271E-07"
+        ixz="9.90189754544092E-07"
+        iyy="0.000273608488667303"
+        iyz="-4.26449156475517E-05"
+        izz="9.54407545425689E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_tl_robot_joint3"
+    type="revolute">
+    <origin
+      xyz="0 -0.149000000000025 -0.0154999999998962"
+      rpy="1.5708 0 0" />
+    <parent
+      link="left_tl_robot_link2" />
+    <child
+      link="left_tl_robot_link3" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.124139"
+      upper="3.124139"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="left_tl_robot_link4">
+    <inertial>
+      <origin
+        xyz="-6.99431193496719E-06 -0.0577562410654654 -0.000634078592158249"
+        rpy="0 0 0" />
+      <mass
+        value="0.0945262983430323" />
+      <inertia
+        ixx="0.000214550783369561"
+        ixy="-5.50960844473502E-08"
+        ixz="1.53001698675783E-09"
+        iyy="6.31918724465825E-05"
+        iyz="4.11631899879449E-05"
+        izz="0.00021869518192156" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link4.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_tl_robot_joint4"
+    type="revolute">
+    <origin
+      xyz="0 -0.0164999999992038 0.120999999999937"
+      rpy="-1.57079632679627 0 0" />
+    <parent
+      link="left_tl_robot_link3" />
+    <child
+      link="left_tl_robot_link4" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-2.495821"
+      upper="2.495821"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="left_tl_robot_link5">
+    <inertial>
+      <origin
+        xyz="7.50066541921959E-05 -0.0130523823399006 0.04963985738117"
+        rpy="0 0 0" />
+      <mass
+        value="0.0724094144385522" />
+      <inertia
+        ixx="9.91945473114378E-05"
+        ixy="1.15179943581037E-08"
+        ixz="1.07166530760741E-09"
+        iyy="0.000100845113670381"
+        iyz="2.08351600024709E-05"
+        izz="4.46387868807175E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link5.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_tl_robot_joint5"
+    type="revolute">
+    <origin
+      xyz="0 -0.142499999999983 0.0165000000001518"
+      rpy="1.57079632679383 0 0" />
+    <parent
+      link="left_tl_robot_link4" />
+    <child
+      link="left_tl_robot_link5" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.124139"
+      upper="3.124139"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="left_tl_robot_link6">
+    <inertial>
+      <origin
+        xyz="3.02668056421929E-06 0.0369553485561812 -0.00435599608723536"
+        rpy="0 0 0" />
+      <mass
+        value="0.0641021126403894" />
+      <inertia
+        ixx="8.55444892877557E-05"
+        ixy="2.49152763442722E-08"
+        ixz="1.21086545288146E-08"
+        iyy="4.00412914205535E-05"
+        iyz="-1.76690218633705E-05"
+        izz="8.50631441730822E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link6.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link6.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_tl_robot_joint6"
+    type="revolute">
+    <origin
+      xyz="0 0.0115000000223894 0.0874999999982808"
+      rpy="1.5707963267949 0 0" />
+    <parent
+      link="left_tl_robot_link5" />
+    <child
+      link="left_tl_robot_link6" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-2.321288"
+      upper="2.321288"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="left_tl_robot_link7">
+    <inertial>
+      <origin
+        xyz="0.000636125689871883 -0.000115489719950457 0.0276167899390971"
+        rpy="0 0 0" />
+      <mass
+        value="0.0527304191165404" />
+      <inertia
+        ixx="2.88985591130285E-05"
+        ixy="-9.31800001187546E-09"
+        ixz="-3.9316987978186E-08"
+        iyy="2.93412062754832E-05"
+        iyz="6.57976329334848E-08"
+        izz="3.28297948484077E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link7.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_tl_robot_link7.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_tl_robot_joint7"
+    type="revolute">
+    <origin
+      xyz="0 0.1015 0.0115"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="left_tl_robot_link6" />
+    <child
+      link="left_tl_robot_link7" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.124139"
+      upper="3.124139"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="left_camera_link">
+    <inertial>
+      <origin
+        xyz="0.00884601495850573 -8.45360193213462E-05 -0.00817238050408053"
+        rpy="0 0 0" />
+      <mass
+        value="0.0983685799947149" />
+      <inertia
+        ixx="6.73756901227269E-05"
+        ixy="3.88935781666913E-09"
+        ixz="-1.42741228932252E-06"
+        iyy="2.14582593232746E-05"
+        iyz="4.56384512286157E-08"
+        izz="7.935667914876E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_camera_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/left_camera_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_camera_joint"
+    type="fixed">
+    <origin
+      xyz="-0.0845 0 0.0345"
+      rpy="-3.1416 0 0" />
+    <parent
+      link="left_tl_robot_link7" />
+    <child
+      link="left_camera_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+  <link
+    name="right_tl_robot_link0">
+    <inertial>
+      <origin
+        xyz="-0.000898598060838349 -9.74557167436885E-05 0.0437281074165792"
+        rpy="0 0 0" />
+      <mass
+        value="0.185024093811127" />
+      <inertia
+        ixx="0.000344004738276043"
+        ixy="2.60120865378958E-09"
+        ixz="1.42882673050794E-05"
+        iyy="0.000297974572758627"
+        iyz="4.16240879109678E-08"
+        izz="0.00035263270049133" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link0.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link0.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_tl_robot_joint0"
+    type="fixed">
+    <origin
+      xyz="-0.00160556062482627 -0.015 1.135"
+      rpy="-1.5707963267949 0 -3.14159265358979" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_tl_robot_link0" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="right_tl_robot_link1">
+    <inertial>
+      <origin
+        xyz="2.25062317606162E-06 0.01470548342918 -0.0663292821178562"
+        rpy="0 0 0" />
+      <mass
+        value="0.140761207039366" />
+      <inertia
+        ixx="0.000372210598602177"
+        ixy="-1.09817157716033E-08"
+        ixz="3.3096226262731E-08"
+        iyy="0.000389946021886572"
+        iyz="5.96473155414182E-05"
+        izz="0.000156496459891171" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_tl_robot_joint1"
+    type="revolute">
+    <origin
+      xyz="-0.0016055606248247 0 0.122399999999838"
+      rpy="3.14159265358979 0 0" />
+    <parent
+      link="right_tl_robot_link0" />
+    <child
+      link="right_tl_robot_link1" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.124139"
+      upper="3.124139"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="right_tl_robot_link2">
+    <inertial>
+      <origin
+        xyz="9.81671270246232E-06 0.0560926406654784 -0.00336633295923183"
+        rpy="0 0 0" />
+      <mass
+        value="0.124320601351331" />
+      <inertia
+        ixx="0.000338228751056713"
+        ixy="2.82764806066466E-08"
+        ixz="1.17100174629439E-08"
+        iyy="0.000119669271192458"
+        iyz="-6.43973721553794E-05"
+        izz="0.000349386651993773" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_tl_robot_joint2"
+    type="revolute">
+    <origin
+      xyz="0 -0.0154999999982536 -0.119600000000028"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="right_tl_robot_link1" />
+    <child
+      link="right_tl_robot_link2" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-2.408554"
+      upper="2.408554"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="right_tl_robot_link3">
+    <inertial>
+      <origin
+        xyz="-0.000130180813974257 -0.012987012108425 -0.0647089720474023"
+        rpy="0 0 0" />
+      <mass
+        value="0.114512769471602" />
+      <inertia
+        ixx="0.000262269009844799"
+        ixy="1.88454670380204E-07"
+        ixz="-9.89703620149144E-07"
+        iyy="0.000273608043691236"
+        iyz="-4.26448416821371E-05"
+        izz="9.54407094461616E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_tl_robot_joint3"
+    type="revolute">
+    <origin
+      xyz="0 0.149000000000025 0.0154999999998962"
+      rpy="1.5707963267942 0 0" />
+    <parent
+      link="right_tl_robot_link2" />
+    <child
+      link="right_tl_robot_link3" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.124139"
+      upper="3.124139"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="right_tl_robot_link4">
+    <inertial>
+      <origin
+        xyz="-6.99431191972244E-06 0.057756241065406 0.000634078592171128"
+        rpy="0 0 0" />
+      <mass
+        value="0.0945262983431651" />
+      <inertia
+        ixx="0.000214550783369909"
+        ixy="5.50960845719659E-08"
+        ixz="-1.5300169997872E-09"
+        iyy="6.31918724466383E-05"
+        iyz="4.11631899880312E-05"
+        izz="0.000218695181921911" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link4.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_tl_robot_joint4"
+    type="revolute">
+    <origin
+      xyz="0 0.0164999999990397 -0.120999999999959"
+      rpy="-1.57079632679762 0 0" />
+    <parent
+      link="right_tl_robot_link3" />
+    <child
+      link="right_tl_robot_link4" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-2.495821"
+      upper="2.495821"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="right_tl_robot_link5">
+    <inertial>
+      <origin
+        xyz="7.50080486264584E-05 0.0130523820067967 -0.0496398552229247"
+        rpy="0 0 0" />
+      <mass
+        value="0.0724094094487496" />
+      <inertia
+        ixx="9.91945411345528E-05"
+        ixy="-1.15185782373962E-08"
+        ixz="-1.06802447788352E-09"
+        iyy="0.000100845105755053"
+        iyz="2.08351590845964E-05"
+        izz="4.46387847841124E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link5.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_tl_robot_joint5"
+    type="revolute">
+    <origin
+      xyz="0 0.142499999999983 -0.0165000000001518"
+      rpy="1.57079632679383 0 0" />
+    <parent
+      link="right_tl_robot_link4" />
+    <child
+      link="right_tl_robot_link5" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.124139"
+      upper="3.124139"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="right_tl_robot_link6">
+    <inertial>
+      <origin
+        xyz="2.93174460116313E-06 0.0369552773878571 -0.00435609287680727"
+        rpy="0 0 0" />
+      <mass
+        value="0.0641025562652514" />
+      <inertia
+        ixx="8.55446215511783E-05"
+        ixy="2.48753926311416E-08"
+        ixz="1.20224567517758E-08"
+        iyy="4.0041460083535E-05"
+        iyz="-1.76690645580016E-05"
+        izz="8.50632465313259E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link6.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link6.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_tl_robot_joint6"
+    type="revolute">
+    <origin
+      xyz="0 -0.0115000000223895 -0.0874999999982808"
+      rpy="-1.5707963267949 0 0" />
+    <parent
+      link="right_tl_robot_link5" />
+    <child
+      link="right_tl_robot_link6" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-2.321288"
+      upper="2.321288"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="right_tl_robot_link7">
+    <inertial>
+      <origin
+        xyz="0.000636125689867678 0.00011548971989328 -0.0276167899390831"
+        rpy="0 0 0" />
+      <mass
+        value="0.0527304191165435" />
+      <inertia
+        ixx="2.88985591130291E-05"
+        ixy="9.31800001192997E-09"
+        ixz="3.93169879753566E-08"
+        iyy="2.93412062754857E-05"
+        iyz="6.57976329402709E-08"
+        izz="3.28297948484093E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link7.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_tl_robot_link7.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_tl_robot_joint7"
+    type="revolute">
+    <origin
+      xyz="0 0.101500000000177 0.0115000000291036"
+      rpy="1.57079632679733 0 0" />
+    <parent
+      link="right_tl_robot_link6" />
+    <child
+      link="right_tl_robot_link7" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.124139"
+      upper="3.124139"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="right_camera_link">
+    <inertial>
+      <origin
+        xyz="0.00884601171681706 8.45549006036617E-05 0.00817238281264943"
+        rpy="0 0 0" />
+      <mass
+        value="0.0983686369422497" />
+      <inertia
+        ixx="6.73757608144237E-05"
+        ixy="-3.89466849867046E-09"
+        ixz="1.42741212572339E-06"
+        iyy="2.14582590009884E-05"
+        iyz="4.56384258501622E-08"
+        izz="7.93567493148486E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_camera_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://tl_robot_description/meshes/y4_ft_705vh_description/right_camera_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_camera_joint"
+    type="fixed">
+    <origin
+      xyz="-0.0845 0 -0.0345"
+      rpy="3.1416 0 0" />
+    <parent
+      link="right_tl_robot_link7" />
+    <child
+      link="right_camera_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+</robot>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PBVS 运行页 — 整流程循环</title>
+<link rel="stylesheet" href="/static/style.css?v=ui11">
+</head>
+<body>
+<header>
+  <h1>PBVS 运行页 — 整流程循环<span class="help" data-tip="⑮「保存到运行页」快照来的最终流程, 存本页自己的 config/run_page.json(重启调试台不丢, 与队列预设/示教点/抓取预设无关)。点每一步展开改 名称/参数(⑧序列含逐步增删调序), 改完「保存全部修改」。「一键开始」= 把本页流程整体换入共用队列并按轮数循环(两臂绝不并行), 跑完一轮自动重灌下一轮; 执行中保存的修改从下一次启动才生效; 任一步失败整队自动停。">?</span></h1>
+  <div class="health">
+    <span class="chip" id="hL"><span class="dot"></span><span class="txt">PBVS-L</span></span>
+    <span class="chip" id="hR"><span class="dot"></span><span class="txt">PBVS-R</span></span>
+    <span class="chip" id="hArm"><span class="dot"></span><span class="txt">臂控:8000</span></span>
+  </div>
+  <button onclick="location.href='/'">← 调试台</button>
+</header>
+<main class="run-grid">
+  <section class="card" id="runStepsCard">
+    <h3>流程步骤(<span id="runStepCount">0</span> 步 · ⑮导入的就是最终队列 · 点步骤展开完整编辑)</h3>
+    <ul class="targets run-steps" id="runStepList"></ul>
+    <div class="row">
+      <button id="btnRunSave" class="primary">💾 保存全部修改</button>
+      <button id="btnRunRevert" title="放弃本页未保存的修改, 重新从文件载入(也会拉取⑮新保存的流程)">↺ 放弃修改/刷新</button>
+      <span class="mono" id="runSavedAt">—</span>
+      <span id="runDirty" style="color:var(--warn);font-size:12px"></span>
+    </div>
+    <div class="video-legend">修改只存本页文件(config/run_page.json), 不影响 ⑮队列预设 / ⑦示教点 / ⑧抓取预设 / 共用队列。</div>
+  </section>
+  <section class="card" id="runCtlCard">
+    <h3>运行控制</h3>
+    <div class="row">
+      <span class="chip" id="runChip"><span class="dot"></span><span class="txt">队列 —</span></span>
+      <span class="mono" id="runCurrent">当前: —</span>
+    </div>
+    <div class="mono" id="runCycles" style="margin:0 0 8px;min-height:14px" title="每轮墙钟耗时(该轮第一步开始→最后一步完成); 当前轮实时累计; 显示最近 8 轮"></div>
+    <ul class="targets" id="runProgress"></ul>
+    <div class="row">
+      <label>循环</label>
+      <input type="number" id="runLoops" value="1" min="1" max="999" style="width:4.5em" title="整条流程跑完=1轮; 跑完自动重灌下一轮">
+      <span>轮</span>
+      <label class="chk" style="margin:0 8px 0 4px;min-width:0"><input type="checkbox" id="runLoopInf"> ∞无限</label>
+    </div>
+    <div class="row">
+      <button id="btnRunStart" class="primary big">▶ 一键开始</button>
+      <button id="btnRunStop" class="danger big">■ 停止</button>
+    </div>
+    <div class="video-legend" id="runRunHint" style="color:var(--warn)"></div>
+    <div class="video-legend">开始 = 把本页流程整体换入共用队列(替换其待执行项)并循环执行; 停止 = 当前动作行进到最近检查点停下、剩余项清空。任一步失败整队自动停。</div>
+    <div class="logbox-head" style="margin-top:10px">📋 运行日志(持久化 · 中断排查 — 每次启动/每轮/每步结果/停止/结束原因都落盘, 服务重启也在) · <a href="/api/queue/timing?pretty=1&amp;limit=800" target="_blank" style="color:var(--s1)" title="config/run_timing.jsonl — 每步/每轮的开始·结束·耗时(墙钟=各步之和+开销)与每次运行摘要(总时长/均轮/各轮), 分析每轮执行耗时用">⏱ 计时日志 ↗</a> · <a href="/api/queue/timing?excel=1" style="color:var(--s1)" title="下载 .xlsx(3 表: 逐步明细/每轮汇总/运行摘要; 耗时列是真数字, Excel 里可直接求和/平均/透视)">⬇ 导出Excel</a></div>
+    <pre id="runLog" title="config/run_log.jsonl — 中断看最后几行: ✗=哪步失败带原因, ■ 中断/用户停止, ⚠ 服务重启/进程退出"></pre>
+  </section>
+</main>
+<div id="toast"></div>
+<script src="/static/run.js?v=run3"></script>
+</body>
+</html>

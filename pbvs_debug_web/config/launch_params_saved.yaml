@@ -1,0 +1,23 @@
+/**:
+  ros__parameters:
+    arm_mode: dual
+    arm_type1: '705'
+    arm_type2: '705'
+    debug_logging: false
+    dof1: 7
+    dof2: 7
+    frames.dual.left.base_frame: left_tl_robot_link0
+    frames.dual.left.end_frame: left_tl_robot_link7
+    frames.dual.right.base_frame: right_tl_robot_link0
+    frames.dual.right.end_frame: right_tl_robot_link7
+    frames.dual.urdf_path: urdf/y4_ft_705vh_description.urdf
+    gripper_modbus_rtu_port1: 2
+    gripper_modbus_rtu_port2: 2
+    gripper_modbus_slave_id1: 1
+    gripper_modbus_slave_id2: 1
+    gripper_type1: inspire_gripper
+    gripper_type2: inspire_gripper
+    ip1: 192.168.2.13
+    ip2: 192.168.2.14
+    is_gripper1: true
+    is_gripper2: true

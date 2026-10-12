@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PBVS 调试台</title>
+<link rel="stylesheet" href="/static/style.css?v=ui11">
+</head>
+<body>
+
+<header>
+  <h1>PBVS 调试台<span class="help" data-tip="标准流程:① 连接相机 → ② 预览确认绿框稳定套住 QR(工作距 ≈25cm) → ③ 标定(质检通过) → ④ 示教录入目标 → ⑤ 扰动后对准(step 单步调 / start 闭环)">?</span></h1>
+  <nav class="tabs" id="tabs">
+    <button data-side="left">左臂 · :7004</button>
+    <button data-side="right" class="active">右臂 · :7005</button>
+  </nav>
+  <div class="speedctl">
+    <span>速度</span>
+    <input type="range" id="armSpeed" min="1" max="100" step="1" value="15">
+    <b id="armSpeedVal">—</b>
+    <span class="help" data-tip="本臂全局运动速度(1-100%)。对准步进 / ⑦点动 / 示教回放 / ⑧抓取序列 / ⑨队列全部按此速度执行(即 fd /move_robotarm 的 speed 参数)。左右臂各自独立设置, 持久化保存, 重启保持。调试建议 ≤20%。">?</span>
+  </div>
+  <div class="settings-wrap">
+    <button id="btnSettings">⚙ 模块</button>
+    <div class="settings-panel" id="settingsPanel" hidden>
+      <div class="head">显示的功能模块</div>
+      <div id="moduleList"></div>
+      <div class="row"><button id="btnModulesAll">全部显示</button></div>
+    </div>
+  </div>
+  <div class="health" id="health"></div>
+</header>
+
+<main>
+  <!-- 主显示区: 相机 / 3D 预览 切换(同一位置) -->
+  <div class="viewbar">
+    <div class="viewtabs" id="viewTabs">
+      <button data-view="cam" class="active">相机</button>
+      <button data-view="3d">3D 预览</button>
+    </div>
+    <span class="viewbar-hint" id="viewbarHint">点击相机画面选用左/右臂</span>
+  </div>
+
+  <!-- 相机视图: 左右相机同行 + 竖排对准状态(活动臂) -->
+  <section id="viewCam">
+    <div class="cam-strip">
+      <div class="cam-card" id="camCardLeft" data-side="left" title="点击选用左臂">
+        <div class="cam-head">左臂相机 · :7004<span class="cam-badge">选用中</span></div>
+        <div class="video-wrap"><img id="videoLeft" alt="左臂相机(未连接)"><canvas id="ovLeft" class="det-ov"></canvas><canvas id="ovPoseLeft" class="det-ov"></canvas></div>
+      </div>
+      <div class="cam-card" id="camCardRight" data-side="right" title="点击选用右臂">
+        <div class="cam-head">右臂相机 · :7005<span class="cam-badge">选用中</span></div>
+        <div class="video-wrap"><img id="videoRight" alt="右臂相机(未连接)"><canvas id="ovRight" class="det-ov"></canvas><canvas id="ovPoseRight" class="det-ov"></canvas></div>
+      </div>
+      <div class="card align-col">
+        <h3>对准状态 — <span id="statusSide">right</span></h3>
+        <div class="kpis vert">
+          <div class="kpi"><label>XY 误差</label><b id="errXY">—</b><span>mm</span></div>
+          <div class="kpi"><label>Z 误差</label><b id="errZ">—</b><span>mm</span></div>
+          <div class="kpi"><label>迭代</label><b id="iter">—</b><span>次</span></div>
+          <div class="kpi"><label>阶段</label><b id="stage">—</b><span id="alignState"></span></div>
+        </div>
+        <div class="chart-block">
+          <div class="chart-head">
+            <span>误差历史 (mm)</span>
+            <span class="legend">
+              <span><i style="background:var(--s1)"></i>XY</span>
+              <span><i style="background:var(--s2)"></i>Z</span>
+            </span>
+          </div>
+          <canvas id="chart"></canvas>
+        </div>
+        <div class="logbox">
+          <div class="logbox-head">aligner 日志</div>
+          <pre id="alignLog">等待数据…</pre>
+        </div>
+      </div>
+    </div>
+    <div class="video-controls">
+      <label>fps <input type="range" id="fps" min="1" max="5" step="1" value="3"> <span id="fpsVal">3</span></label>
+      <button id="btnPause">暂停</button>
+      <button id="btnStopAlign" class="danger big">■ 停止对准</button>
+      <span class="help" data-tip="绿框 = QR 检测 · 红框 = 目标位置 · 黄箭头 = 误差方向 · 白十字 = 光轴中心">?</span>
+    </div>
+  </section>
+
+  <!-- 3D 视图: 双臂模型 + 工具坐标系编辑 -->
+  <section id="view3d" hidden>
+    <div class="v3d-wrap">
+      <div class="v3d-canvas" id="v3dCanvas">
+        <div class="v3d-loading" id="v3dLoading">正在加载机器人模型…</div>
+      </div>
+      <aside class="card v3d-panel">
+        <h3>🛠 工具坐标系 — <span id="toolSide">right</span>臂<span class="help" data-tip="工具系 = 法兰 link7 → 工具尖端的偏移(平移 mm / 旋转 °,右手系)。输入即时反映到 3D 预览;「保存并生效」后 fk / ⑦点动(工具系) / goto 的控制点立即变为 TCP 并持久化到 tool_frame_{臂}.json;零偏移 = 法兰(与原行为一致)。">?</span></h3>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="v3dShowBase" checked> 基座系</label>
+          <label class="chk"><input type="checkbox" id="v3dShowFlange" checked> 法兰系</label>
+          <label class="chk"><input type="checkbox" id="v3dShowTool" checked> 工具系</label>
+        </div>
+        <div class="tool-grid">
+          <label>X mm<input type="number" id="toolX" step="1" value="0"></label>
+          <label>Y mm<input type="number" id="toolY" step="1" value="0"></label>
+          <label>Z mm<input type="number" id="toolZ" step="1" value="0"></label>
+          <label>RX °<input type="number" id="toolRx" step="1" value="0"></label>
+          <label>RY °<input type="number" id="toolRy" step="1" value="0"></label>
+          <label>RZ °<input type="number" id="toolRz" step="1" value="0"></label>
+        </div>
+        <div class="row">
+          <button id="btnToolRead">↺ 读取</button>
+          <button id="btnToolSave" class="primary">💾 保存并生效</button>
+          <button id="btnToolReset">⌀ 重置零偏移</button>
+        </div>
+        <div class="mono" id="toolTcpPose">TCP: —</div>
+        <div class="result"><pre id="toolResult">—</pre></div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<!-- 控制卡片 -->
+<div class="controls">
+
+  <div class="card" id="cardRecover">
+    <h3>⭕ 一键恢复 (总电源重启后点这个)<span class="help" data-tip="流程:重启 tl_driver(重建TCP) → 双臂上电 → 夹爪诊断 → PBVS/相机自愈 → 回放取料位 → PBVS对准, 全程 1–3 分钟。⚠ 断电时抱闸不锁、臂会垮动 —— 断电前清空工作面; 夹爪「内部通讯故障」软件清不掉, 需等臂停稳再断一次总电, 然后重点本按钮。">?</span></h3>
+    <div class="row">
+      <button id="btnRecover" class="primary big">⚡ 一键恢复</button>
+      <label class="chk"><input type="checkbox" id="recMove" checked> 回位+对准(机械臂会动)</label>
+    </div>
+    <div class="result"><pre id="recLog">—</pre></div>
+  </div>
+
+  <div class="card" id="cardCamera">
+    <h3>① 相机<span class="help" data-tip="左臂实例 → 262322071271,右臂实例 → 262022070108(切换 tab 自动填)。相机由 fd_cameras_hub 统一管理(PBVS 走租约), 重启 PBVS 实例后需在此重新连接。">?</span></h3>
+    <div class="row">
+      <label>序列号</label>
+      <input type="text" id="camSerial">
+      <button id="btnCamConnect" class="primary">连接</button>
+      <button id="btnCamDisconnect">断开</button>
+    </div>
+    <div class="result"><pre id="camResult">—</pre></div>
+  </div>
+
+  <div class="card" id="cardCalib">
+    <h3>② 标定(在线手眼标定)<span class="help" data-tip="⚠ 机械臂会沿基座 XYZ 各 ±5mm 自动试移动,耗时约 1–2 分钟。通过标准:列模长 ≈1.0 ∈ [0.8,1.2] 且 cond&lt;50,坏 J 自动丢弃。">?</span></h3>
+    <div class="row">
+      <label>step_m</label>
+      <input type="number" id="calibStep" value="0.005" step="0.001" min="0.002" max="0.01">
+      <button id="btnCalibrate">执行标定</button>
+    </div>
+    <div class="jqc" id="calibQc"></div>
+    <div class="result"><pre id="calibResult">—</pre></div>
+  </div>
+
+  <div class="card" id="cardTeach">
+    <h3>③ 示教 / 目标<span class="help" data-tip="录入前确认 QR 绿框稳定、位姿即想要的目标位。数据自动存 reference_{Left,Right}_Arm.json(按臂分文件)。">?</span></h3>
+    <div class="row">
+      <label>目标名</label>
+      <input type="text" id="tgtName" placeholder="如:取料点1">
+      <label>marker(m)</label>
+      <input type="number" id="tgtSize" value="0.06" step="0.005">
+      <button id="btnRecord">示教录入</button>
+    </div>
+    <ul class="targets" id="targetList"></ul>
+  </div>
+
+  <div class="card" id="cardAlign">
+    <h3>④ 对准<span class="help" data-tip="单步 = 一次「测量→运动」迭代,调试建议先用单步观察误差变化方向;连续含保护:误差连续 3 次超 1.3 倍自动停。每轮一次到位大步走(步长=Kp×误差, 上限 25mm 一口气连续走, 10-07 起; ⑤ 参数 max_step_m 可调) — 收尾步长自动变小, 精度不受影响。＋队列 = 追加到 ⑨ 动作队列(顺序执行, 可中途停)。对准位置微调 = 平移收敛点(相机系, 不动臂): 箭头移 XY、远/近移 Z, 预览红框即时跟随;「回中」= 收敛点设为画面正中(工作距不变),「复位」= 回示教录入原位; 偏移随目标自动保存。">?</span></h3>
+    <div class="row">
+      <button id="btnStep">单步 step</button>
+      <button id="btnStart" class="primary">连续 start</button>
+      <button id="btnStop" class="danger">停止 stop</button>
+    </div>
+    <div class="row">
+      <button id="btnQAlignStep">＋队列·单步</button>
+      <button id="btnQAlignWait">＋队列·对准到收敛</button>
+    </div>
+    <div class="row" style="margin-top:2px">
+      <label>对准位置微调</label>
+      <select id="offStep">
+        <option value="1">1mm</option>
+        <option value="2">2mm</option>
+        <option value="5" selected>5mm</option>
+        <option value="10">10mm</option>
+        <option value="20">20mm</option>
+      </select>
+      <span class="mono" id="offNow">偏移 —</span>
+      <button id="btnOffCenter" title="收敛点设为画面正中(X=0,Y=0), 工作距离不变">回中</button>
+      <button id="btnOffReset" title="把收敛点移回示教录入时的原位">复位</button>
+    </div>
+    <div class="offpad" id="offPad">
+      <span></span><button data-d="u" title="收敛点上移">↑</button><span></span>
+      <button data-d="l" title="收敛点左移">←</button><span class="offmid">XY</span><button data-d="r" title="收敛点右移">→</button>
+      <span></span><button data-d="d" title="收敛点下移">↓</button><span></span>
+      <button data-d="far" title="收敛点更远(臂将后退)">远＋</button><span class="offmid">Z</span><button data-d="near" title="收敛点更近(臂将靠近)">近−</button>
+    </div>
+    <div class="result"><pre id="alignResult">—</pre></div>
+  </div>
+
+  <div class="card" id="cardParams">
+    <h3>⑤ 参数<span class="help" data-tip="提高精度:门限降到 0.001(1mm),需光照稳定。参数仅存内存, 重启 PBVS 实例后失效。">?</span></h3>
+    <div class="row"><label>Kp</label><input type="number" id="pKp" step="0.05"></div>
+    <div class="row"><label>max_step_m</label><input type="number" id="pMaxStep" step="0.001"></div>
+    <div class="row"><label>门限 m</label><input type="number" id="pThresh" step="0.001"></div>
+    <div class="row"><label>marker_id</label><input type="number" id="pMarkerId" step="1"></div>
+    <div class="row"><button id="btnParamsSave">保存参数</button><button id="btnParamsReload">读取</button></div>
+  </div>
+
+  <div class="card" id="cardRef">
+    <h3>⑥ 参考数据(J 矩阵质检)<span class="help" data-tip="保存/加载固定使用按臂分文件(reference_{Left,Right}_Arm.json),避免旧 reference.json 双实例互相覆盖。列模长≈1 且 cond&lt;50 为合格。">?</span></h3>
+    <div class="jqc" id="refQc"></div>
+    <table class="jmatrix" id="refJ"></table>
+    <div class="mono" id="refMeta">—</div>
+    <div class="row" style="margin-top:8px">
+      <button id="btnRefReload">刷新</button>
+      <button id="btnRefSave">保存到臂文件</button>
+      <button id="btnRefLoad">从臂文件加载</button>
+    </div>
+  </div>
+
+  <div class="card" id="cardCart">
+    <h3>⑦ 笛卡尔示教 (TCP 6D 点动 + 点位)<span class="help" data-tip="点动单步硬限 20mm/5°,IK 无解/翻转自动拒绝;回放 = 按录入时关节角原样复现(不重解 IK)。存 teach_points_{臂}.json。需先勾「解锁点动」。">?</span></h3>
+    <div class="tcp-pose mono" id="tcpPose">TCP 位姿: —</div>
+    <div class="row">
+      <label>参考系</label>
+      <select id="cartFrame">
+        <option value="base">基座系</option>
+        <option value="tool">工具系</option>
+      </select>
+      <label>平移步长</label>
+      <select id="cartLin">
+        <option value="0.001">1mm</option>
+        <option value="0.002">2mm</option>
+        <option value="0.005" selected>5mm</option>
+        <option value="0.01">10mm</option>
+      </select>
+      <label>旋转步长</label>
+      <select id="cartAng">
+        <option value="0.5">0.5°</option>
+        <option value="1" selected>1°</option>
+        <option value="2">2°</option>
+        <option value="5">5°</option>
+      </select>
+    </div>
+    <div class="jogpad" id="jogpad"></div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="cartArm"> 解锁点动(确认臂周无人无障碍)</label>
+      <label class="chk"><input type="checkbox" id="cartDry"> 试算 dry-run(不运动)</label>
+    </div>
+    <div class="row">
+      <label>点位名</label>
+      <input type="text" id="tpName" placeholder="如:拍照位1">
+      <button id="btnTpSave" class="primary">📌 保存当前位姿</button>
+      <button id="btnTpPlayAll">▶ 顺序回放全部</button>
+      <button id="btnQTpPlayAll">＋队列·回放全部</button>
+    </div>
+    <ul class="targets" id="tpList"></ul>
+    <div class="result"><pre id="cartResult">—</pre></div>
+  </div>
+
+  <div class="card" id="cardGrasp">
+    <h3>⑧ 抓取序列 (每步 XYZ/RXRYZ 可单独编辑, 顺序可调)<span class="help" data-tip="每行一步, X/Y/Z(mm, 正负不限)直接改, 参考系行内切换: 工具系 = 沿工具轴(俯/仰/平视的&quot;沿视线&quot;方向), 基座系 = 物理竖直/水平(Z 正=向上)。每步向量 ≤300mm。旋转步 RX/RY/RZ(°)绕工具尖(TCP): 工具系 = 绕工具自身轴(RZ=转腕, RY=俯仰), 基座系 = 绕物理轴; 每步 ≤180°。执行=每个平移/旋转步一次到位(整步一次 IK 到目标一口气插补过去, 与示教点回放同形态; 步间可停步内不可停); 夹爪开度 0(闭)-1000(开); ↑↓ 调顺序。速度按顶栏全局速度。建议先在 ⑦ 存安全位示教点, 异常一键回放。🧭转正步 = 执行时按最近一次⑩检测(⑭扫描会自动更新)现算转腕角: 偏角≤30°(✓正确姿态)自动跳过; 行内两个角度各管一个方向、各自带符号直接写死 — 调转角+时=⑩判定调转角(⟳后的数字)为正时执行的腕RZ角, 调转角−时=为负时; 留空=按检测值(方向幅度都跟检测); 0=该情况明确不转; 袋#=检测序(⑭扫描序=袋#, ⑩卡片序=表格序); 转反了直接改对应栏的符号, 不用试跑定号。">?</span></h3>
+    <div class="row">
+      <span class="chip" id="graspAligned"><span class="dot"></span><span class="txt">对准 —</span></span>
+      <span class="mono" id="gripperPos">夹爪 —</span>
+      <span class="mono" id="graspPoseInfo">⑩: —</span>
+    </div>
+    <div class="row">
+      <label>添加步骤</label>
+      <select id="graspAddType">
+        <option value="move" selected>平移 (XYZ 任意)</option>
+        <option value="rot">旋转 (绕 RX/RY/RZ)</option>
+        <option value="posealign">🧭 转正 (按⑩检测偏角)</option>
+        <option value="grip">夹爪开度</option>
+        <option value="dwell">等待</option>
+      </select>
+      <button id="btnGraspAdd">＋ 添加</button>
+    </div>
+    <ul class="targets step-list" id="graspStepList"></ul>
+    <div class="row">
+      <label>我的预设</label>
+      <select id="graspPresetSel"><option value="">— 已存预设 —</option></select>
+      <button id="btnGraspPresetDel" title="删除选中预设">🗑</button>
+      <input type="text" id="graspPresetName" placeholder="预设名,如:俯视取料">
+      <button id="btnGraspPresetSave">💾 存当前步骤</button>
+    </div>
+    <div class="row">
+      <label>内置模板</label>
+      <select id="graspTemplate">
+        <option value="">— 选择载入 —</option>
+        <option value="clear">清空步骤</option>
+      </select>
+      <label class="chk"><input type="checkbox" id="graspRequireAligned" checked> 需对准收敛(&lt;3mm)</label>
+      <label class="chk"><input type="checkbox" id="graspDry"> 试算 dry-run</label>
+    </div>
+    <div class="row">
+      <button id="btnGripOpen">张开夹爪</button>
+      <button id="btnGripClose">闭合夹爪</button>
+      <button id="btnGripMax">🔥 满力闭合</button>
+      <button id="btnGraspRun" class="primary" title="每个平移/旋转步一次到位: 整步一次 IK 到目标、单点关节指令一口气插补过去(与示教点回放同形态, 不再 18mm/5° 分块点动); 步间可停, 步内不可停; 夹爪/等待步不变">▶ 执行序列(一次到位)</button>
+      <button id="btnQGraspSeq">＋队列·当前序列</button>
+    </div>
+    <div class="result"><pre id="graspResult">—</pre></div>
+  </div>
+
+  <div class="card" id="cardQueue">
+    <h3>⑨ 动作队列 (左右共用 · ④⑦⑧⑭ 入队 → 顺序执行)<span class="help" data-tip="左右臂共用一条队列: 切到某臂 tab 后在 ④⑦⑧⑭ 点「＋队列」, 该项自动带上 左/右 标记; 执行时协调器按标记逐项派给对应臂(7004/7005), 两臂绝不并行。⑭ 吸取项=协调器拉起 suction_bag.py 子进程(不回放扫描位, 在轮到它时的当前臂位扫描再直线到吸取位即停, 不压紧 — 压紧/开真空在⑧序列)。⑧ 队列项与 ▶执行序列(一次到位) 同走法。待执行项 ↑↓ 可调顺序、✕ 移除。停止 = 当前动作行进到最近检查点(⑧⑭ 一次到位的 步/段 走完即停)后停在原位, 未执行项清空; 任一项失败整队自动停。历史(灰)项可 ↻ 单条重新入队 / ✕ 移除, 「↻ 全部重新入队」=整轮一键重跑; 执行中仍可热追加。多次循环用 ⑮ 卡(串行, 按本队列实际顺序)。队列存在调试台内存, 重启调试台即清空; 预设存在调试台 config, 含左右标记。">?</span></h3>
+    <div class="row">
+      <span class="chip" id="qRunning"><span class="dot"></span><span class="txt">队列 —</span></span>
+      <span class="mono" id="qCurrent">当前: —</span>
+    </div>
+    <ul class="targets" id="queueList"></ul>
+    <div class="row">
+      <label>队列预设</label>
+      <select id="qPresetSel"><option value="">— 已存队列 —</option></select>
+      <input type="text" id="qPresetName" placeholder="预设名,如:整箱连抓">
+      <button id="btnQSave">💾 存当前</button>
+      <button id="btnQLoad">载入</button>
+      <button id="btnQDel" title="删除选中预设">🗑</button>
+    </div>
+    <div class="row">
+      <button id="btnQueueRun" class="primary">▶ 开始执行</button>
+      <button id="btnQueueStop" class="danger">■ 停止</button>
+      <button id="btnQueueRequeue" title="把全部历史(已执行)项按原样重新入队 — 常用循环(如连吸多袋)一键重跑; 单条复活用历史行里的 ↻">↻ 全部重新入队</button>
+      <button id="btnQueueClear">清空</button>
+    </div>
+  </div>
+
+  <div class="card" id="cardPose">
+    <h3>⑩ 姿态检测 — 单袋 正/反 + 4脚点 + 整姿决策<span class="help" data-tip="weilong11n_pose 模型(imgsz=896, GPU 旁路 :7020)。绿=正面 橙=反面, 白箭头=头部(1、2脚点)方向, 黄点=质心。整姿决策: ✓可抓=正面且头部朝上(±30°) | ⟳调转=正面但头部不朝上(附所需角度, 逆时针为正) | ⇄翻面=反面朝上, 翻完重检。⚠ 训练集为单袋近距图, 箱内小目标/堆叠可能检不出(域外)。快照=检测同刻的相机帧+标注; 「叠加到相机画面」=同步画到上方相机小图。抓取联动: 示教一次(正确抓取悬停位+腕角对齐袋主轴) → 任意袋序号「🎯对齐并伺服」(位置+腕角交替闭环) → ⑧ 下探抓取; 位置步长同 ⑫ 下拉。袋#与 ⑭ 同一套深度层序(同⑪整箱: 离相机最近=最上层先, 同层内左→右, #1=最近层最左边) — 表格#、画面标注#、⑭袋#、🧭步袋# 四处一致(仅左臂; 右臂无手眼无层序, 画面/表格一律不标#, 不受右臂相机影响)。">?</span></h3>
+    <div class="kpis">
+      <div class="kpi"><label>检出</label><b id="poseCount">—</b><span>袋</span></div>
+      <div class="kpi"><label>正 / 反</label><b id="poseFR">—</b><span>袋</span></div>
+      <div class="kpi"><label>整姿</label><b id="poseActs">—</b><span>✓ ⟳ ⇄</span></div>
+      <div class="kpi"><label>耗时</label><b id="poseMs">—</b><span>ms/帧</span></div>
+    </div>
+    <div class="row">
+      <label>相机</label>
+      <select id="poseSide">
+        <option value="both" selected>双(左右同测)</option>
+        <option value="left">仅左臂</option>
+        <option value="right">仅右臂</option>
+      </select>
+      <label>conf</label>
+      <input type="number" id="poseConf" value="0.25" step="0.05" min="0.05" max="0.9">
+      <button id="btnPoseOnce">📷 单次检测</button>
+      <button id="btnPoseLive" class="primary">▶ 连续检测</button>
+      <button id="btnPoseStop" class="danger" disabled>■ 停止</button>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="poseOv" checked> 叠加到相机画面</label>
+      <span class="video-legend" id="poseState">待检测</span>
+    </div>
+    <div class="row">
+      <span class="mono">📥 采集集</span>
+      <button id="btnColFront">存帧·正面</button>
+      <button id="btnColBack">存帧·反面</button>
+      <span class="video-legend" id="colCount">—</span>
+      <span class="help" data-tip="把当前相机帧存进重训采集集(袋怎么摆就点什么): 正面朝上按「存帧·正面」, 反面朝上按「存帧·反面」。同一位置连点多张意义不大 — 每挪动/旋转一次袋子点 1-2 张, 两面各 15+ 个位置即可重训正/反分类器。存在 weilong/collect_wrist/{front,back}/。">?</span>
+    </div>
+    <div class="pose-snaps" id="poseSnaps"></div>
+    <div class="row" style="margin-top:4px">
+      <span class="chip" id="bagRefChip"><span class="dot"></span><span class="txt">参考 —</span></span>
+      <span class="chip" id="bagRunChip"><span class="dot"></span><span class="txt">空闲</span></span>
+      <span class="mono" id="bagAngInfo">角: —</span>
+    </div>
+    <div class="row">
+      <label>袋序号</label>
+      <input type="number" id="bagIndex" value="1" min="1" step="1">
+      <button id="btnBagGoto" class="primary">🎯 对齐并伺服</button>
+      <button id="btnBagStep">单步</button>
+      <button id="btnBagStop" class="danger" disabled>■ 停止</button>
+    </div>
+    <div class="row">
+      <button id="btnBagTeach">📌 示教抓取参考 #N</button>
+      <label class="chk"><input type="checkbox" id="bagAlignAngle" checked> 对齐腕角<span class="help" data-tip="勾选=伺服同时把腕部 rz 转到示教时的袋头方向角(转腕滚转相机画面实现, 方向系数首跑自动定号); 取消=只做位置对准。收敛门限: XY/Z&lt;3mm 且角差&lt;4°。">?</span></label>
+    </div>
+    <div class="result"><pre id="bagResult">—</pre></div>
+    <table id="poseTable"><thead></thead><tbody></tbody></table>
+    <div class="result"><pre id="poseResult">—</pre></div>
+  </div>
+
+  <div class="card" id="cardBox">
+    <h3>⑪ 整箱检测 — 箱内多捆 + 深度感知抓取顺序<span class="help" data-tip="weilong11n_box 模型(imgsz=512, GPU 旁路 :7020)。每捆绿框, #序号=抓取顺序: 深度感知 — 最上层(掩膜区域中位深度离相机最近)优先, 同层(差&lt;15mm)内前排优先左→右, 每侧相机各自编号; 框右上橙字 z=深度mm·L层号(z?=深度无效排末尾); conf=置信度, 黄点=质心。PBVS 实例离线/相机未连时回退纯 2D 前排排序(无 z)。⚠ 遮挡/倾斜视角可能漏检。快照=检测同刻相机帧+标注; 「叠加到相机画面」=同步画到上方相机小图。">?</span></h3>
+    <div class="kpis">
+      <div class="kpi"><label>检出</label><b id="boxCount">—</b><span>捆</span></div>
+      <div class="kpi"><label>左臂</label><b id="boxL">—</b><span>捆</span></div>
+      <div class="kpi"><label>右臂</label><b id="boxR">—</b><span>捆</span></div>
+      <div class="kpi"><label>耗时</label><b id="boxMs">—</b><span>ms/帧</span></div>
+    </div>
+    <div class="row">
+      <label>相机</label>
+      <select id="boxSide">
+        <option value="both" selected>双(左右同测)</option>
+        <option value="left">仅左臂</option>
+        <option value="right">仅右臂</option>
+      </select>
+      <label>conf</label>
+      <input type="number" id="boxConf" value="0.3" step="0.05" min="0.05" max="0.9">
+      <button id="btnBoxOnce">📷 单次检测</button>
+      <button id="btnBoxLive" class="primary">▶ 连续检测</button>
+      <button id="btnBoxStop" class="danger" disabled>■ 停止</button>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="boxOv" checked> 叠加到相机画面</label>
+      <span class="video-legend" id="boxState">待检测</span>
+    </div>
+    <div class="pose-snaps" id="boxSnaps"></div>
+    <table id="boxTable"><thead></thead><tbody></tbody></table>
+    <div class="result"><pre id="boxResult">—</pre></div>
+  </div>
+
+  <div class="card" id="cardPick">
+    <h3>⑫ 整箱抓取 — 深度优先 + 一键伺服<span class="help" data-tip="配合 ⑪: #序号已按深度排序(最上层优先)。流程: ①把臂挪到箱口悬停位(工作距 ≥30cm) → ②「J 重标定」以「捆序号」输入框指定的捆为标记(默认 #1, 建议挑与邻捆间隔明显的大捆)在三轴 ±8mm 重标(每点连测 3 次取中值抗掩膜抖动; 姿态与 QR 标定不同时增益更准, 列模长≈1/cond&lt;50 三绿即通过, 可跳过先用旧 J 试) → ③手动微调臂到&quot;能正确抓住某捆&quot;的悬停位, 输入其序号点「📌示教参考」 → ④此后任意捆「🎯瞄准并伺服」即闭环移到该参考点(相机刚性固连法兰 ⇒ 相对位姿自动复现, 无需手眼标定)。收敛(XY/Z&lt;3mm)后 ⑧ 的&quot;需对准收敛&quot;门限会自动放开, 手动执行下探抓取; 换捆只需改序号再点。安全: 每步 ≤8mm, 误差发散/超时自动停, 可单步试方向。">?</span></h3>
+    <div class="row">
+      <span class="chip" id="pickRefChip"><span class="dot"></span><span class="txt">参考 —</span></span>
+      <span class="chip" id="pickRunChip"><span class="dot"></span><span class="txt">空闲</span></span>
+      <span class="mono" id="pickJSrc">J: —</span>
+      <span class="video-legend" id="pickScanInfo">未扫描</span>
+    </div>
+    <div class="row">
+      <label>捆序号</label>
+      <input type="number" id="pickIndex" value="1" min="1" step="1">
+      <button id="btnPickGoto" class="primary">🎯 瞄准并伺服</button>
+      <button id="btnPickStep">单步</button>
+      <button id="btnPickStop" class="danger" disabled>■ 停止</button>
+    </div>
+    <div class="row">
+      <label>步长<span class="help" data-tip="每轮伺服的相机系位移上限(实际=min(0.5×误差, 此值), 收尾自动变小不影响精度)。换行等大偏差选 12-15mm 明显更快; 硬顶 20mm(jog6 物理限), 30mm J⁻¹护栏/发散停始终生效。">?</span></label>
+      <select id="pickStep">
+        <option value="0.005">5mm 稳</option>
+        <option value="0.008" selected>8mm</option>
+        <option value="0.012">12mm</option>
+        <option value="0.015">15mm 快</option>
+      </select>
+      <button id="btnPickTeach">📌 示教参考 #N</button>
+      <button id="btnPickCalib">J 重标定(箱口姿态)</button>
+      <button id="btnPickScan">📷 重新扫描</button>
+    </div>
+    <div class="jqc" id="pickQc"></div>
+    <div class="result"><pre id="pickResult">—</pre></div>
+  </div>
+
+  <div class="card" id="cardSuction">
+    <h3>⑭ 单袋吸取 — 直线直达 一键复现<span class="help" data-tip="suction_bag.py --direct --no-scan-move 的网页入口(仅左臂)。流程(10-10 起): ①不再回放扫描位 — 在当前臂位直接 ②bag/scan 测袋心(手眼+FK, ±1.5mm)+分袋偏移表(⚠须先把臂停在能看全袋群的机位, 如扫描位; 太近 z&lt;200mm 会被当幽灵拒收, 非扫描机位的质心视角滑移未标定) → ③一条合成直线直达袋心上方 袋面+6mm(XYZ 同动不分段; 先 dry 试算 IK, 不可解停在原地不动臂) → 到位即停, 一律不压紧 — 压紧/开真空放⑧序列里做(工具系Z下压步+等待步), 与「▶执行序列(一次到位)」行为一致。⚠路径无巡航走廊: 斜线接近段会下穿袋面高度(实机已验证可行), 换架/摆高后首次跑注意观察。袋#=深度层序(同⑪): 离相机最近=最上层先、同层内从左到右(#1=最近层最左边, 挪袋不换号); 多袋换袋改袋#即可; 近距幽灵(z&lt;200mm)自动拒收。分袋偏移表 suct_adj_Left_Arm.json: 哪袋不准手摆对质一次把残差写进去, 手编辑即时生效。📌存对准位=手摆正确吸取悬停位后覆盖存「对准中心位置」: 直线终点腕姿态(rpy)+袋高护栏基准取自它(高度差 ±250mm 内自动跟袋面, 超限被拦=真换台面, 须重存); 换台面/⑬重标TCP后重录一次即可。">?</span></h3>
+    <div class="row">
+      <span class="chip" id="suctChip"><span class="dot"></span><span class="txt">空闲</span></span>
+      <span class="video-legend">原地测袋心→一条合成直线直达袋心上方→到位即停(不先回扫描位, 须停在能看全袋群处; 压紧/真空在⑧序列)</span>
+    </div>
+    <div class="row">
+      <button id="btnSuctDirect" class="primary" title="从当前臂位一条合成直线直达袋心上方(XYZ 同时动不分段; 到位即停不压紧) — 不先回放扫描位, 臂须已停在能看全袋群的机位; 先 dry 试算, IK 不可解停在原地">🎯 直线直达吸取位</button>
+      <button id="btnQSuct" title="把⑭直线吸取(按当前袋#: 与🎯按钮一致 — 不回放扫描位, 在轮到它时的当前臂位扫描再直线直达, 到位即停不压紧)追加到 ⑨/⑮ 队列 — 轮到它才动臂(仅左臂); ⚠循环[⑭→⑧]里⑧结束后臂停在袋上, 下轮⑭扫不到袋会拦下整队 — 需循环时⑧序列末尾加一步回扫描位; 压紧/开真空接在后面的⑧序列里">＋队列·直线吸取</button>
+      <button id="btnSuctTeach" title="手摆臂到正确吸取悬停位后点此: 当前位姿(TCP)覆盖存为「对准中心位置」 — 直线终点腕姿态(rpy)+袋高护栏基准取自它; 换台面(袋高差>250mm被拦)/⑬重标TCP后重录一次">📌 存对准位</button>
+    </div>
+    <div class="row">
+      <label>袋#<span class="help" data-tip="多袋场景选第几袋。序号=深度分层(同⑪): 离相机最近(=最上层)先, 同层内从左到右 — #1=最近层最左边, 数字越大越远/越靠右(袋怎么挪/怎么重摆, 编号都跟着深度层位走不变); 不确定就看⑭结果区 ② 列表(每袋带 层号L + 深度 + 质心px)对号。单袋保持 1。">?</span></label>
+      <input type="number" id="suctIndex" value="1" min="1" step="1">
+      <span class="video-legend">⑭只到袋面上方6mm即停(不压紧); 压紧/开真空放⑧序列里做(Z下压+等待步)</span>
+    </div>
+    <div class="result"><pre id="suctResult">—</pre></div>
+  </div>
+
+  <div class="card" id="cardDuo">
+    <h3>⑮ 循环执行 (串行 · 按⑨队列实际顺序)<span class="help" data-tip="把队列预设按保存时的实际顺序追加到 ⑨ 的共用队列(不拆左右, 混合顺序原样保留), 可连续拼多个再到 ⑨ 调序; 「▶ 开始循环」= 这条队列逐项串行执行(与⑨完全同一条队列, 两臂绝不并行), 跑完一轮自动整轮重灌下一轮, 直到 N 轮/∞/停止。执行中仍可热追加(只进当前轮, 后续轮按启动时快照)、⑨ 里 ↑↓ 调序实时生效; 任一项失败整队自动停。本卡列表只读 — 增删/调序在 ⑨ 卡操作。">?</span></h3>
+    <div class="row">
+      <label>队列预设</label>
+      <select id="qDuoPresetSel"><option value="">— 选预设追加 —</option></select>
+      <button id="btnDuoAdd" title="把选中预设按实际顺序追加到队列尾(不清空现有项, 可连续加多个)">＋加入(追加到队列)</button>
+    </div>
+    <div class="row">
+      <span class="chip" id="duoChip"><span class="dot"></span><span class="txt">队列 —</span></span>
+      <span class="mono" id="duoCurrent">当前: —</span>
+    </div>
+    <ul class="targets" id="duoList"></ul>
+    <div class="row">
+      <label>循环</label>
+      <input type="number" id="qDuoLoops" value="2" min="1" max="999" style="width:4.5em" title="整条队列跑完=1轮; 跑完自动重灌下一轮">
+      <span>轮</span>
+      <label style="margin:0 8px 0 4px"><input type="checkbox" id="qDuoLoopInf"> ∞无限</label>
+      <button id="btnDuoRun" class="primary">▶ 开始循环</button>
+      <button id="btnDuoStop" class="danger">■ 停止</button>
+      <button id="btnDuoClear">清空</button>
+    </div>
+    <div class="row">
+      <button id="btnDuoSaveRun" title="把⑮当前已组成(⑨待执行)的整条队列按实际顺序快照到 /run 运行页自己的文件(config/run_page.json) — 运行页可逐步改名称/参数/轮数并文件持久化(重启调试台不丢), 与队列预设无关。执行中不可保存">💾 保存到运行页</button>
+      <button id="btnOpenRun" title="新标签页打开 /run 运行页: 整流程展示、逐步编辑参数、一键循环执行(实机工作页)">▶ 打开运行页 ↗</button>
+    </div>
+  </div>
+
+  <div class="card" id="cardToolcal">
+    <h3>⑬ 工具标定 — TCP 三点/多点法<span class="help" data-tip="经典工具坐标系标定: 让工具尖端轻触工作面上一个固定点(尖点/笔尖/孔), 每次换一个明显不同的姿态(法兰朝向差 ≥15°, 建议 4 点), 到位后点「记录」; 记满 ≥3 点「求解」。数学: 每点满足 法兰位置+R·t=同一尖端点, 最小二乘同时解出 t(法兰→工具尖平移)与尖端基座坐标; 只标平移, 旋转分量沿用当前工具系(工具同轴安装=0 不用标)。质检绿标: 点数≥3、残差RMS&lt;2.5mm(RMS&lt;1mm 优)、姿态差≥10°; RMS 大 = 触点没对准同一点或姿态差异不足。「应用」= 平移写入工具坐标系(立即生效+持久化 tool_frame_{臂}.json), 之后 ⑦点动/goto 的控制点=真实工具尖, ⑫ 伺服收敛位即工具尖正对捆。">?</span></h3>
+    <div class="kpis">
+      <div class="kpi"><label>已记录</label><b id="tcCount">—</b><span>点</span></div>
+      <div class="kpi"><label>TCP 平移</label><b id="tcT">—</b><span>mm</span></div>
+      <div class="kpi"><label>残差 RMS</label><b id="tcRms">—</b><span>mm</span></div>
+      <div class="kpi"><label>姿态差</label><b id="tcSpread">—</b><span>°</span></div>
+    </div>
+    <div class="row">
+      <button id="btnTcRec" class="primary">📝 记录当前点</button>
+      <button id="btnTcUndo">↩ 撤销</button>
+      <button id="btnTcClear">清空</button>
+      <button id="btnTcSolve">⚙ 求解 TCP</button>
+      <button id="btnTcApply" disabled>💾 应用到工具坐标系</button>
+      <label class="chk"><input type="checkbox" id="tcConfirm"> 确认覆盖</label>
+    </div>
+    <div class="row">
+      <span class="video-legend">尖端轻触同一固定点 → 换姿态(≥15°)记录 ≥3 次 → 求解 → 应用; 姿态差大 + RMS 小 = 结果可信</span>
+    </div>
+    <table id="tcTable"><thead></thead><tbody></tbody></table>
+    <div class="jqc" id="tcQc"></div>
+    <div class="result"><pre id="tcResult">—</pre></div>
+  </div>
+</div>
+
+<!-- 底部 -->
+<div class="bottom">
+  <div class="card" id="cardJoints">
+    <h3>机械臂关节角 (deg) — fd_arm_http :8000<span class="help" data-tip="1Hz 轮询 :8000 /get_joint_angle(经调试台缓存)。看实时构型/验证到位。">?</span></h3>
+    <table id="joints"><thead></thead><tbody></tbody></table>
+  </div>
+  <div class="card" id="cardLog">
+    <h3>PBVS 实例日志 — /tmp/pbvs_<span id="logSide">right</span>.log<span class="help" data-tip="尾随当前臂 PBVS 实例的日志(约 40 行, 2s 刷新)。标定/对准/队列的执行细节都在这里。">?</span></h3>
+    <pre id="procLog">等待数据…</pre>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="/static/app.js?v=ui46"></script>
+<script type="module" src="/static/viewer3d.js?v=3d2"></script>
+</body>
+</html>

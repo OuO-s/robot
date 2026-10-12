@@ -1,0 +1,22 @@
+{
+ "annotated": 200,
+ "empty": 20,
+ "skipped": 0,
+ "per_folder": {
+  "weilong-data1": {
+   "annotated": 100,
+   "empty": 0,
+   "skipped": 0
+  },
+  "weilong-data2": {
+   "annotated": 100,
+   "empty": 0,
+   "skipped": 0
+  },
+  "weilong-data3": {
+   "annotated": 0,
+   "empty": 20,
+   "skipped": 0
+  }
+ }
+}
