@@ -198,17 +198,20 @@ def _spfmt(v):                                # 速度值 → 整数字符串(�
 
 
 def _timing_pretty(evs):
-    """计时事件 → 人读文本: 运行头 → 每轮(墙钟=步和+开销) → 逐步明细 → 摘要。"""
-    by_cycle = {}                                # (seq,cycle) → 逐步行(时间序)
+    """计时事件 → 人读文本: 运行头 → 每轮(墙钟=步和+开销) → 逐步明细 → 摘要。
+    双臂并行页(/duo)的 round 事件带 side(每道各一条) → 步骤按道归组、
+    轮行带 [左]/[右] 前缀、速度只显本臂; ⑨队列事件无 side, 渲染与旧版相同。"""
+    by_cycle = {}                                # (seq,cycle) → [(side, 逐步行)]
     out = []
     for e in evs:
         ev = e.get("event")
         if ev == "step":
             by_cycle.setdefault((e.get("seq"), e.get("cycle")), []).append(
-                "    %2d. %s→%s %7.2fs %s [%s] %s" %
-                (e.get("idx") or 0, _hms(e.get("start")), _hms(e.get("end")),
-                 e.get("dur_s") or 0.0, "✓" if e.get("ok") else "✗",
-                 _SIDE_CN.get(e.get("side"), e.get("side")), e.get("label", "?")))
+                (e.get("side"),
+                 "    %2d. %s→%s %7.2fs %s [%s] %s" %
+                 (e.get("idx") or 0, _hms(e.get("start")), _hms(e.get("end")),
+                  e.get("dur_s") or 0.0, "✓" if e.get("ok") else "✗",
+                  _SIDE_CN.get(e.get("side"), e.get("side")), e.get("label", "?"))))
         elif ev == "run_start":
             out.append("===== 运行#%s · %s · %s 步 × %s · %s =====" %
                        (e.get("seq"), e.get("source"), e.get("steps"),
@@ -216,28 +219,49 @@ def _timing_pretty(evs):
                         time.strftime("%m-%d %H:%M:%S",
                                       time.localtime(e.get("t") or 0))))
         elif ev == "round":
+            sd = e.get("side")                   # 双臂并行: 每道各一条 round
             sp = e.get("speed") or {}
-            sptxt = ""
-            if any(sp.get(s) is not None for s in ("left", "right")):
-                sptxt = " · 速L%s/R%s%%" % (_spfmt(sp.get("left")),
-                                            _spfmt(sp.get("right")))
-            out.append("  第%s轮  %s→%s  墙%.2fs = 步和%.2fs + 开销%.2fs  (%s步·%s%s)" %
-                       (e.get("cycle"), _hms(e.get("start")), _hms(e.get("end")),
+            if sd is not None:                   # 只采本臂速度
+                sptxt = ""
+                if sp.get(sd) is not None:
+                    sptxt = " · 速%s%s%%" % ("L" if sd == "left" else "R",
+                                             _spfmt(sp.get(sd)))
+            else:
+                sptxt = ""
+                if any(sp.get(s) is not None for s in ("left", "right")):
+                    sptxt = " · 速L%s/R%s%%" % (_spfmt(sp.get("left")),
+                                                _spfmt(sp.get("right")))
+            rows = by_cycle.get((e.get("seq"), e.get("cycle")), [])
+            if sd is not None:
+                rows = [r for r in rows if r[0] == sd]
+            out.append("  %s第%s轮  %s→%s  墙%.2fs = 步和%.2fs + 开销%.2fs  (%s步·%s%s)" %
+                       (("[%s] " % _SIDE_CN[sd]) if sd in _SIDE_CN else "",
+                        e.get("cycle"), _hms(e.get("start")), _hms(e.get("end")),
                         e.get("dur_s") or 0.0, e.get("step_sum_s") or 0.0,
                         e.get("overhead_s") or 0.0, e.get("steps"),
                         {"ok": "完成", "failed": "失败中断",
                          "stopped": "停止"}.get(e.get("ended"), e.get("ended")),
                         sptxt))
-            out.extend(by_cycle.get((e.get("seq"), e.get("cycle")), []))
+            out.extend(r[1] for r in rows)
         elif ev == "run_summary":
-            durs = e.get("round_durs") or []
-            out.append("  ── 摘要: %s · %s轮 · 总%.2fs · 均轮%.2fs%s" %
-                       ({"completed": "正常跑完", "failed": "失败中断",
-                         "stopped": "用户停止"}.get(e.get("reason"), e.get("reason")),
-                        e.get("rounds"), e.get("dur_s") or 0.0,
-                        e.get("avg_round_s") or 0.0,
-                        (" · 各轮[%s]" % ", ".join("%.1f" % v for v in durs))
-                        if durs else ""))
+            rsn = {"completed": "正常跑完", "failed": "失败中断",
+                   "stopped": "用户停止"}.get(e.get("reason"), e.get("reason"))
+            lanes = e.get("lanes")               # 双臂并行: 两道轮数可不同
+            if lanes:
+                out.append("  ── 摘要: %s · 左%d轮·均%.2fs / 右%d轮·均%.2fs · 总%.2fs" %
+                           (rsn,
+                            (lanes.get("left") or {}).get("rounds", 0),
+                            (lanes.get("left") or {}).get("avg_round_s") or 0.0,
+                            (lanes.get("right") or {}).get("rounds", 0),
+                            (lanes.get("right") or {}).get("avg_round_s") or 0.0,
+                            e.get("dur_s") or 0.0))
+            else:
+                durs = e.get("round_durs") or []
+                out.append("  ── 摘要: %s · %s轮 · 总%.2fs · 均轮%.2fs%s" %
+                           (rsn, e.get("rounds"), e.get("dur_s") or 0.0,
+                            e.get("avg_round_s") or 0.0,
+                            (" · 各轮[%s]" % ", ".join("%.1f" % v for v in durs))
+                            if durs else ""))
     return "\n".join(out) + "\n"
 
 
@@ -296,7 +320,7 @@ def _timing_xlsx(evs):
     starts = {e.get("seq"): e for e in evs if e.get("event") == "run_start"}
     step_rows = [["运行#", "轮次", "步序", "臂", "类型", "步骤名称", "结果",
                   "开始时刻", "结束时刻", "耗时(s)"]]
-    round_rows = [["运行#", "轮次", "开始时刻", "结束时刻", "墙钟耗时(s)",
+    round_rows = [["运行#", "轮次", "臂", "开始时刻", "结束时刻", "墙钟耗时(s)",
                    "各步之和(s)", "开销(s)", "步数", "左臂速度(%)", "右臂速度(%)", "结局"]]
     sum_rows = [["运行#", "来源", "模式", "每轮步数", "结束原因", "开始", "结束",
                  "总耗时(s)", "平均每轮(s)", "各轮耗时(s)"]]
@@ -312,6 +336,7 @@ def _timing_xlsx(evs):
         elif ev == "round":
             sp = e.get("speed") or {}
             round_rows.append([e.get("seq"), e.get("cycle"),
+                               _SIDE_CN.get(e.get("side"), ""),   # 双臂并行每道各一条
                                _hms(e.get("start")), _hms(e.get("end")),
                                e.get("dur_s") or 0.0, e.get("step_sum_s") or 0.0,
                                e.get("overhead_s") or 0.0, e.get("steps") or 0,
@@ -321,14 +346,27 @@ def _timing_xlsx(evs):
         elif ev == "run_summary":
             st = starts.get(e.get("seq"), {})
             durs = e.get("round_durs") or []
+            lanes = e.get("lanes")               # 双臂并行: 两道轮数/耗时分开
+            if lanes:
+                all_d = [v for s in ("left", "right")
+                         for v in (lanes.get(s) or {}).get("round_durs") or []]
+                avg = round(sum(all_d) / len(all_d), 2) if all_d else 0.0
+                durs = ["%s:%s" % (_SIDE_CN.get(s, s),
+                                   ",".join("%.1f" % v for v in
+                                            (lanes.get(s) or {}).get("round_durs") or []))
+                        for s in ("left", "right")
+                        if (lanes.get(s) or {}).get("round_durs")]
+            else:
+                avg = e.get("avg_round_s") or 0.0
+                durs = ["%.1f" % v for v in durs]
             sum_rows.append([e.get("seq"), st.get("source") or "?",
                              ("%d轮" % st["loops"]) if st.get("loops") else "∞",
                              st.get("steps"), _XL_REASON.get(e.get("reason"), e.get("reason")),
                              _hms(e.get("start")), _hms(e.get("end")),
-                             e.get("dur_s") or 0.0, e.get("avg_round_s") or 0.0,
-                             ", ".join("%.1f" % v for v in durs)])
+                             e.get("dur_s") or 0.0, avg,
+                             " / ".join(durs)])
     sheets = [_xl_sheet(step_rows, [7, 6, 6, 5, 11, 30, 5, 10, 10, 9]),
-              _xl_sheet(round_rows, [7, 6, 10, 10, 11, 11, 9, 6, 10, 10, 10]),
+              _xl_sheet(round_rows, [7, 6, 5, 10, 10, 11, 11, 9, 6, 10, 10, 10]),
               _xl_sheet(sum_rows, [7, 9, 7, 9, 10, 15, 15, 10, 11, 34])]
     CT = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
           '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
@@ -691,7 +729,7 @@ def _begin_run_locked(items, loops):
     if _running[0]:
         return 0, "队列已在执行"
     if duo_running():
-        return 0, "⑮ 双臂并行循环正在执行, 先停止它"
+        return 0, "双臂并行运行页(/duo)正在执行, 先停止它"
     if not items:
         return 0, "队列为空"
     _stop.clear()

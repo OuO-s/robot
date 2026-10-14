@@ -382,3 +382,24 @@ pre#runLog { height: 220px; }
 #runProgress li.q-cur { border-color: var(--warn); }
 #runProgress li.q-cur .name { color: var(--warn); font-weight: 600; }
 button.big { padding: 10px 22px; font-size: 15px; }
+
+/* ---------- /duo 双臂并行页 ---------- */
+.run-steps .midb { flex: none; cursor: pointer; font-size: 11px; padding: 1px 7px;
+  border-radius: 8px; border: 1px solid var(--grid); background: transparent;
+  color: var(--muted); font-family: inherit; line-height: 1.5; }
+.run-steps .midb.on { background: rgba(250, 178, 25, .18); color: var(--warn); border-color: var(--warn); font-weight: 600; }
+.run-steps .midb.off { color: var(--muted); border-style: dashed; opacity: .75; }
+.run-steps .midb.fon { background: var(--warn); color: #000; border-color: var(--warn); font-weight: 600; }
+.run-steps .midb.foff { color: var(--muted); border-style: dashed; text-decoration: line-through; }
+.run-steps .midb.wait { background: rgba(57, 135, 229, .18); color: var(--s1); border-color: var(--s1); }
+.lane-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0; }
+@media (max-width: 520px) { .lane-cols { grid-template-columns: 1fr; } }
+.lane-panel { border: 1px solid var(--grid); border-radius: 8px; padding: 6px 8px;
+  font-size: 12px; min-height: 96px; }
+.lane-panel .lane-head { display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 4px; flex-wrap: wrap; }
+.lane-panel .lane-now { display: flex; align-items: center; gap: 6px; margin: 2px 0 4px; flex-wrap: wrap; }
+.lane-panel ul { list-style: none; margin: 0; padding: 0; max-height: 170px; overflow: auto; }
+.lane-panel ul li { display: flex; align-items: center; gap: 5px; padding: 2px 0;
+  border-bottom: 1px dashed var(--grid); overflow: hidden; white-space: nowrap; }
+.lane-panel ul li .name { overflow: hidden; text-overflow: ellipsis; }
+pre#duoLog { height: 200px; }

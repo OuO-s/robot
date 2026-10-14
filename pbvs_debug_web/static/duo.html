@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PBVS 双臂并行运行页 — 整流程循环</title>
+<link rel="stylesheet" href="/static/style.css?v=duo1">
+</head>
+<body>
+<header>
+  <h1>PBVS 双臂并行运行页 — 整流程循环<span class="help" data-tip="与 /run 页同一套流程(可「从运行页导入」), 但启动时按臂拆成两道【同时跑】: 各臂内部保序, 跨臂先后不保留。防撞=中间区互斥: 「中」徽章步骤两臂绝不同时执行, 一臂持中另一臂排队(⏳等中)。中区自动判定(名称含「中」入口, 段内⑦回侧边也持中=退出步), 点徽章三态覆盖(自动→强制非中/中→自动)。自由循环: 两臂各自独立循环不互相等轮, 只在中区排队。任一步失败双臂同停。">?</span></h1>
+  <div class="health">
+    <span class="chip" id="hL"><span class="dot"></span><span class="txt">PBVS-L</span></span>
+    <span class="chip" id="hR"><span class="dot"></span><span class="txt">PBVS-R</span></span>
+    <span class="chip" id="hArm"><span class="dot"></span><span class="txt">臂控:8000</span></span>
+  </div>
+  <button onclick="location.href='/'">← 调试台</button>
+  <button onclick="location.href='/run'" title="同一套流程串行执行(两臂绝不并行)">串行运行页 ↗</button>
+</header>
+<main class="run-grid">
+  <section class="card" id="duoStepsCard">
+    <h3>流程步骤(<span id="duoStepCount">0</span> 步 · 左右混排 · 并行时按臂拆道, 只保各臂内部顺序)</h3>
+    <div class="video-legend" style="color:var(--warn)">⚠ 两臂同时工作: 跨臂先后顺序不保留。「中」=中间区步骤(两臂互斥, 一臂持中另一臂⏳等) — 点徽章可强制开/关(自动→反着强制→再点换向→还原自动)。</div>
+    <ul class="targets run-steps" id="duoStepList"></ul>
+    <div class="row">
+      <label>＋步骤</label>
+      <select id="duoAddKind">
+        <option value="teach_goto">⑦前往</option>
+        <option value="teach_play">⑦回放</option>
+        <option value="align_step">④对准·单步</option>
+        <option value="align_wait">④对准·到收敛</option>
+        <option value="grasp_seq">⑧抓取序列</option>
+        <option value="gripper">🤏夹爪</option>
+        <option value="dwell">⏱等待</option>
+        <option value="suction">⑭吸取(左)</option>
+      </select>
+      <button id="btnDuoAddStep">＋ 添加到列表尾</button>
+      <button id="btnDuoImport" title="把 /run 页(config/run_page.json)的整条流程拷过来, 中区覆盖清零重新自动判定">⤵ 从运行页导入</button>
+    </div>
+    <div class="row">
+      <button id="btnDuoSave" class="primary">💾 保存全部修改</button>
+      <button id="btnDuoRevert" title="放弃本页未保存的修改, 重新从文件载入">↺ 放弃修改/刷新</button>
+      <span class="mono" id="duoSavedAt">—</span>
+      <span id="duoDirty" style="color:var(--warn);font-size:12px"></span>
+    </div>
+    <div class="video-legend">修改只存本页文件(config/duo_page.json), 不影响 /run 页 / ⑮队列预设 / ⑦示教点 / ⑧抓取预设。与⑨队列/run页互相排他: 同时只允许一个在跑。</div>
+  </section>
+  <section class="card" id="duoCtlCard">
+    <h3>运行控制(双道并行)</h3>
+    <div class="row">
+      <span class="chip" id="duoChip"><span class="dot"></span><span class="txt">并行 —</span></span>
+      <span class="mono" id="duoMid">中区: —</span>
+    </div>
+    <div class="lane-cols">
+      <div class="lane-panel" id="laneL"></div>
+      <div class="lane-panel" id="laneR"></div>
+    </div>
+    <div class="row">
+      <label>循环</label>
+      <input type="number" id="duoLoops" value="1" min="1" max="999" style="width:4.5em" title="各臂把自己的道跑完=1轮; 两臂各自循环(自由节奏, 只在中区排队)">
+      <span>轮</span>
+      <label class="chk" style="margin:0 8px 0 4px;min-width:0"><input type="checkbox" id="duoLoopInf"> ∞无限</label>
+    </div>
+    <div class="row">
+      <button id="btnDuoStart" class="primary big">▶ 一键开始</button>
+      <button id="btnDuoStop" class="danger big">■ 停止</button>
+    </div>
+    <div class="video-legend" id="duoRunHint" style="color:var(--warn)"></div>
+    <div class="video-legend">开始 = 按臂拆道两臂同时循环; 中区互斥(等到的臂才进, 其余步骤完全并行); 停止 = 双臂在最近检查点同停; 任一步失败双臂同停。</div>
+    <div class="logbox-head" style="margin-top:10px">📋 运行日志(与⑨/run页同一份 · 持久化) · <a href="/api/queue/timing?pretty=1&amp;limit=800" target="_blank" style="color:var(--s1)" title="config/run_timing.jsonl — 双臂运行的轮行带[左]/[右]前缀, 每道各自计时">⏱ 计时日志 ↗</a> · <a href="/api/queue/timing?excel=1" style="color:var(--s1)" title="下载 .xlsx(每轮汇总表含「臂」列)">⬇ 导出Excel</a></div>
+    <pre id="duoLog" title="config/run_log.jsonl — ✗=哪步失败带原因, ■ 中断/用户停止, ⚠ 服务重启/进程退出"></pre>
+  </section>
+</main>
+<div id="toast"></div>
+<script src="/static/duo.js?v=duo1"></script>
+</body>
+</html>

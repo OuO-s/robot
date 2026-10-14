@@ -8,7 +8,7 @@
 
 | 仓库目录 | 机器上的位置 | 是什么 |
 |---|---|---|
-| `pbvs_debug_web/` | `/home/tianlian/PBVS代码包/debug_web/` | **调试台 :7010**（systemd `pbvs-debug-web`）：双臂点动/示教/抓取队列/⑩⑪⑫⑬⑭⑮各卡片/`/run` 运行页/一键恢复。核心文件 `server.py` + `static/`（前端 app.js/run.js/viewer3d.js）+ `queue_hub.py`（队列协调）+ `duo_hub.py` + `runpage.py` + `pose_cache.py` + `recover.py` |
+| `pbvs_debug_web/` | `/home/tianlian/PBVS代码包/debug_web/` | **调试台 :7010**（systemd `pbvs-debug-web`）：双臂点动/示教/抓取队列/⑩⑪⑫⑬⑭⑮各卡片/`/run` 整流程循环运行页/`/duo` 双臂并行运行页（按臂分道真并行，中区互斥）/一键恢复。核心文件 `server.py` + `static/`（前端 app.js/run.js/duo.js/viewer3d.js）+ `queue_hub.py`（串行队列协调）+ `duo_hub.py`（双臂并行）+ `runpage.py` + `pose_cache.py` + `recover.py` |
 | `pbvs_debug_web/label_web/` | 同上 `label_web/` | 采集标注网页 :7030（systemd `pbvs-label-web`），collect_wrist YOLO-pose 标注用 |
 | `weilong_anno_tools/` | `/home/tianlian/weilong/anno/` | 标注工具网页：`box_anno_tool.py` :8765（箱内多捆）、`anno_tool.py`/`pose_anno_tool.py`（单袋分割/姿态）+ 各 `*_ui.html` + 标注状态 json/pkl |
 | `weilong_box_detect/` | `/home/tianlian/weilong/box_detect_service.py` | 视觉检测旁路服务 :7020（systemd `weilong-box-detect`，GPU）：调试台 ⑪⑫⑭ 的模型推理后端 |
@@ -17,8 +17,8 @@
 
 `pbvs_debug_web/static/` 里的 `vendor/`（three.js + urdf-loader）和 `robot/`（URDF + STL 网格，
 约 19M）是 3D 预览的依赖资产（来自厂商），一并打包，保证拷走即可运行。
-`config/` 里的 `queue_presets.json`、`run_page.json` 是保存的队列预设/运行页配置；
-运行日志 `run_log.jsonl`、`run_timing.jsonl` 不备份。
+`config/` 里的 `queue_presets.json`、`run_page.json`（/run 页）、`duo_page.json`（/duo 页）
+是保存的队列预设/运行页配置；运行日志 `run_log.jsonl`、`run_timing.jsonl` 不备份。
 
 ## 恢复方法
 

@@ -191,6 +191,12 @@ def run_page():
     return send_from_directory(STATIC, "run.html")
 
 
+@app.route("/duo")
+def duo_page():
+    """双臂并行运行页 — 同套整流程, 左右拆道真并行, 中间区互斥防撞。"""
+    return send_from_directory(STATIC, "duo.html")
+
+
 # ---------------------------------------------------------------- 代理
 
 @app.route("/api/<side>/pbvs/<path:rest>", methods=["GET", "POST"])
